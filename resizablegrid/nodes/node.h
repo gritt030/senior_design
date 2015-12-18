@@ -6,7 +6,8 @@
 
 class Node {
   public:
-    static const int GRID_SIZE = 161;    //size of one side of the grid (odd) 61 for good data structure
+    static const int GRID_SIZE = 161;   //size of one side of the grid (odd) 61 for good data structure
+    static const char MAX_VALUE = 127;  //maximum value we can have in a grid square
     char *map;                          //occupancy grid for this node
     
     //neighbors in linked list

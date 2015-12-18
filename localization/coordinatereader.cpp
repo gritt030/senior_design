@@ -10,14 +10,8 @@ CoordinateReader::CoordinateReader(char* filename){
   }
 }
 
-void CoordinateReader::getCurrentCoords(int* buffer){
-  for (int i=0; i<15; i++){
-    buffer[i] = currentCoords[i];
-  }
-}
 
-
-void CoordinateReader::goToNextCoords(){  
+void CoordinateReader::updateCoords(){  
   long time;
   double x, y, z;
   double nwx, nwy, nwz;
@@ -65,3 +59,86 @@ void CoordinateReader::goToNextCoords(){
   std::cout << currentCoords[12] << ", " << currentCoords[13] << std::endl;
   //*/
 }
+
+
+
+//get position data
+void CoordinateReader::getCurrentCoords(int* buffer){
+  buffer[0] = this->currentCoords[0];
+  buffer[1] = this->currentCoords[1];
+  buffer[2] = this->currentCoords[2];
+}
+void CoordinateReader::getCurrentCoordError(int* buffer){
+  buffer[0] = 0;
+  buffer[1] = 0;
+}
+    
+//get rotation data
+void CoordinateReader::getCurrentRotation(float* buffer){
+  buffer[0] = 0.0;
+  buffer[1] = 0.0;
+  buffer[2] = 0.0;
+}
+float CoordinateReader::getYawError(){
+  return 0.0;
+}
+    
+//get sonar data
+void CoordinateReader::getCurrentSonarCoords(int* buffer){
+  buffer[3] = this->currentCoords[3];
+  buffer[4] = this->currentCoords[4];
+  buffer[5] = this->currentCoords[5];
+  buffer[6] = this->currentCoords[6];
+  buffer[7] = this->currentCoords[7];
+  buffer[8] = this->currentCoords[8];
+  buffer[0] = this->currentCoords[9];
+  buffer[1] = this->currentCoords[10];
+  buffer[2] = this->currentCoords[11];
+  buffer[9] = this->currentCoords[12];
+  buffer[10] = this->currentCoords[13];
+  buffer[11] = this->currentCoords[14];
+}
+void CoordinateReader::getCurrentSonarDists(int* buffer){
+  int x = this->currentCoords[9];
+  int y = this->currentCoords[10];
+  int z = this->currentCoords[11];
+  int d = (int)sqrt(x*x + y*y + z*z);
+  buffer[0] = d;
+  
+  x = this->currentCoords[3];
+  y = this->currentCoords[4];
+  z = this->currentCoords[5];
+  d = (int)sqrt(x*x + y*y + z*z);
+  buffer[1] = d;
+  
+  x = this->currentCoords[6];
+  y = this->currentCoords[7];
+  z = this->currentCoords[8];
+  d = (int)sqrt(x*x + y*y + z*z);
+  buffer[2] = d;
+  
+  x = this->currentCoords[12];
+  y = this->currentCoords[13];
+  z = this->currentCoords[14];
+  d = (int)sqrt(x*x + y*y + z*z);
+  buffer[3] = d;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

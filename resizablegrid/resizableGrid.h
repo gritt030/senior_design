@@ -3,6 +3,7 @@
 #define RG_RESIZABLE_GRID_
 
 #include <iostream> //TODO: remove
+#include <string>   //TODO: remove
 #include <cstdlib>
 #include <cmath>
 #include <algorithm>
@@ -16,7 +17,8 @@ class ResizableGrid {
     static const char UNKNOWN = 0;
     static const char OPEN = 1;
     static const char CLOSED = -1;
-    static const char FRONTIER = 0;
+    static const char FRONTIER = -128;
+    static const char THRESHOLD = 0;
     
     //color in png output
     static const int COLOR_UNKN = 0x888888ff;   //gray
@@ -34,7 +36,7 @@ class ResizableGrid {
     //functions for adding to map
     void addClosed(int x1, int y1, int x2, int y2);
     void addFrontier(int x1, int y1, int x2, int y2);
-    void openNodeLine(int relX1, int relY1, int relX2, int relY2, Node* curNode); //TODO: make this private
+    bool openNodeLine(int relX1, int relY1, int relX2, int relY2, Node* curNode); //TODO: make this private
     void closeNodeLine(int relX1, int relY1, int relX2, int relY2, Node* curNode);
     void frontierNodeLine(int relX1, int relY1, int relX2, int relY2, Node* curNode);
     void sendToImage(char* filename);

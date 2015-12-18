@@ -12,8 +12,19 @@ class CoordinateReader
 {
   public:
     CoordinateReader(char* filename);
+    void updateCoords();
+    
+    //get position data
     void getCurrentCoords(int* buffer);
-    void goToNextCoords();
+    void getCurrentCoordError(int* buffer);
+    
+    //get rotation data
+    void getCurrentRotation(float* buffer);
+    float getYawError();
+    
+    //get sonar data
+    void getCurrentSonarCoords(int* buffer);
+    void getCurrentSonarDists(int* buffer);
     
   private:
     std::ifstream coordFile;

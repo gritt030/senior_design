@@ -169,14 +169,11 @@ void ResizableGrid::openNodeLine(int relX1, int relY1, int relX2, int relY2, Nod
 
 
 
-
-
-
 //Bresenham's Algorithm
 //make all squares in a node grid between (x1,y1) and (x2,y2) open
 // -GRID_SIZE/2 <= x1, x2, y1, y2 <= GRID_SIZE/2
 // (0,0) is the central square in the grid
-void ResizableGrid::openNodeLine(int relX1, int relY1, int relX2, int relY2, Node* curNode){
+bool ResizableGrid::openNodeLine(int relX1, int relY1, int relX2, int relY2, Node* curNode){
   //used to correct coordinates when setting values in grid
   int boundary = Node::GRID_SIZE / 2;
   
@@ -190,30 +187,32 @@ void ResizableGrid::openNodeLine(int relX1, int relY1, int relX2, int relY2, Nod
   //special cases are handled here
   //single point
   if ((deltaX == 0) && (deltaY == 0)) {
-    curNode->setValue(boundary+x, boundary-y, ResizableGrid::OPEN);
-    return;
+    curNode->changeValue(boundary+x, boundary-y, ResizableGrid::OPEN);
+    return true;
     
   //vertical line
   } else if (deltaX == 0) {
     signY = deltaY/abs(deltaY);
     
-    for (int i=0; i<=abs(deltaY); i++) {
-      if (curNode->getValue(boundary+x, boundary-y) < 0) return;
-      curNode->setValue(boundary+x, boundary-y, ResizableGrid::OPEN);
+    for (int i=0; i<abs(deltaY); i++) {
+      if (curNode->getValue(boundary+x, boundary-y) < ResizableGrid::THRESHOLD) return false;
+      curNode->changeValue(boundary+x, boundary-y, ResizableGrid::OPEN);
       y += signY;
     }
-    return;
+    curNode->changeValue(boundary+x, boundary-y, ResizableGrid::OPEN);
+    return true;
     
   //horizontal line
   } else if (deltaY == 0) {
     int signX = deltaX/abs(deltaX);
     
-    for (int i=0; i<=abs(deltaX); i++) {
-      if (curNode->getValue(boundary+x, boundary-y) < 0) return;
-      curNode->setValue(boundary+x, boundary-y, ResizableGrid::OPEN);
+    for (int i=0; i<abs(deltaX); i++) {
+      if (curNode->getValue(boundary+x, boundary-y) < ResizableGrid::THRESHOLD) return false;
+      curNode->changeValue(boundary+x, boundary-y, ResizableGrid::OPEN);
       x += signX;
     }
-    return;
+    curNode->changeValue(boundary+x, boundary-y, ResizableGrid::OPEN);
+    return true;
   }
   
   //switch to absolute value coordinates to make things easier
@@ -221,43 +220,36 @@ void ResizableGrid::openNodeLine(int relX1, int relY1, int relX2, int relY2, Nod
   signY = deltaY/abs(deltaY);
   deltaX = abs(deltaX);
   deltaY = abs(deltaY);
-    
+  
   //SPECIAL CASE: diagonal line
   if (deltaY == deltaX) {
-    for (int i=0; i<=deltaX; i++) {
-      if (curNode->getValue(boundary+x, boundary-y) < 0) return;
-      curNode->setValue(boundary+x, boundary-y, ResizableGrid::OPEN);
+    for (int i=0; i<deltaX; i++) {
+      if (curNode->getValue(boundary+x, boundary-y) < ResizableGrid::THRESHOLD) return false;
+      curNode->changeValue(boundary+x, boundary-y, ResizableGrid::OPEN);
       x += signX;
       y += signY;
     }
-    return;
-  }
-  
-  //extra squares go in same direction as movement
-  if ((signX == -1) && (signY == -1)) {
-    x = relX2;
-    y = relY2;
-    signX = 1;
-    signY = 1;
+    curNode->changeValue(boundary+x, boundary-y, ResizableGrid::OPEN);
+    return true;
   }
   
   //change in x and y so far
-  int cx=0, cy=0;
+  int cx=deltaY>>1, cy=deltaX>>1;
   
   //line more horizontal than vertical
   if (deltaX > deltaY) {
     for (int i=0; i<deltaX; i++) {
       //fill in current grid square
-      if (curNode->getValue(boundary+x, boundary-y) < 0) return;
-      curNode->setValue(boundary+x, boundary-y, ResizableGrid::OPEN);
+      if (curNode->getValue(boundary+x, boundary-y) < ResizableGrid::THRESHOLD) return false;
+      curNode->changeValue(boundary+x, boundary-y, ResizableGrid::OPEN);
       
       //see if we need to move vertically
       cy += deltaY;
-      if (cy >= deltaX) {
+      if (cy > deltaX) {
         y += signY;
         cy -= deltaX;
-        if (curNode->getValue(boundary+x, boundary-y) < 0) return;
-        curNode->setValue(boundary+x, boundary-y, ResizableGrid::OPEN);
+        if (curNode->getValue(boundary+x, boundary-y) < ResizableGrid::THRESHOLD) return false;
+        curNode->changeValue(boundary+x, boundary-y, ResizableGrid::OPEN);
       }
       
       //move horizontally
@@ -268,27 +260,27 @@ void ResizableGrid::openNodeLine(int relX1, int relY1, int relX2, int relY2, Nod
   } else {
     for (int i=0; i<deltaY; i++) {
       //fill in current grid square
-      if (curNode->getValue(boundary+x, boundary-y) < 0) return;
-      curNode->setValue(boundary+x, boundary-y, ResizableGrid::OPEN);
+      if (curNode->getValue(boundary+x, boundary-y) < ResizableGrid::THRESHOLD) return false;
+      curNode->changeValue(boundary+x, boundary-y, ResizableGrid::OPEN);
       
-      //see if we need to move vertically
+      //see if we need to move horizontally
       cx += deltaX;
-      if (cx >= deltaY) {
+      if (cx > deltaY) {
         x += signX;
         cx -= deltaY;
-        if (curNode->getValue(boundary+x, boundary-y) < 0) return;
-        curNode->setValue(boundary+x, boundary-y, ResizableGrid::OPEN);
+        if (curNode->getValue(boundary+x, boundary-y) < ResizableGrid::THRESHOLD) return false;
+        curNode->changeValue(boundary+x, boundary-y, ResizableGrid::OPEN);
       }
       
-      //move horizontally
+      //move vertically
       y += signY;
     }
   }
   
-  if (curNode->getValue(boundary+x, boundary-y) < 0) return;
-  curNode->setValue(boundary+x, boundary-y, ResizableGrid::OPEN);
+  //set last point in line
+  curNode->changeValue(boundary+x, boundary-y, ResizableGrid::OPEN);
+  return true;
 }   //*/
-
 
 
 
@@ -304,10 +296,11 @@ void ResizableGrid::closeNodeLine(int relX1, int relY1, int relX2, int relY2, No
   int boundary = Node::GRID_SIZE / 2;
   
   //open line in grid
-  ResizableGrid::openNodeLine(relX1, relY1, relX2, relY2, curNode);
-  
-  //set final point of line to closed
-  curNode->setValue(boundary+relX2, boundary-relY2, ResizableGrid::CLOSED*10); //TODO: fix this fool!
+  if (ResizableGrid::openNodeLine(relX1, relY1, relX2, relY2, curNode)) {
+    //set final point of line to closed
+    curNode->changeValue(boundary+relX2, boundary-relY2, -ResizableGrid::OPEN);
+    curNode->changeValue(boundary+relX2, boundary-relY2, ResizableGrid::CLOSED*10);
+  }
 }
 
 
@@ -319,10 +312,10 @@ void ResizableGrid::frontierNodeLine(int relX1, int relY1, int relX2, int relY2,
   int boundary = Node::GRID_SIZE / 2;
   
   //open line in grid
-  ResizableGrid::openNodeLine(relX1, relY1, relX2, relY2, curNode);
-  
-  //set final point of line to frontier
-  curNode->setValue(boundary+relX2, boundary-relY2, ResizableGrid::FRONTIER);
+  if (ResizableGrid::openNodeLine(relX1, relY1, relX2, relY2, curNode)) {
+    //set final point in line to frontier
+    curNode->setValue(boundary+relX2, boundary-relY2, ResizableGrid::FRONTIER);
+  }
 }
 
 

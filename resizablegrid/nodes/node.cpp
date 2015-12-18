@@ -10,11 +10,9 @@ Node::Node() {
 
 
 //set a value in the grid to a character
-void Node::changeValue(int x, int y, char value){
+void Node::setValue(int x, int y, char value){
   //bounds checking TODO:Maybe get rid of this, takes 30ns
   if ((x<0) || (y<0) || (x>=Node::GRID_SIZE) || (y>=Node::GRID_SIZE)) {
-    std::cout << "Bad val: " << x << ", " << y << std::endl;
-    
     return;
   }
   
@@ -24,7 +22,7 @@ void Node::changeValue(int x, int y, char value){
 
 
 //change a value in the grid by the amount passed in
-void Node::setValue(int x, int y, char value){
+void Node::changeValue(int x, int y, char value){
   //bounds checking TODO:Maybe get rid of this, takes 30ns
   if ((x<0) || (y<0) || (x>=Node::GRID_SIZE) || (y>=Node::GRID_SIZE)) {
     return;
@@ -34,11 +32,11 @@ void Node::setValue(int x, int y, char value){
   char current = this->map[index];
   
   if (value > 0) {
-    if (current <= (127 - value)) {
+    if (current <= (Node::MAX_VALUE - value)) {
       this->map[index] = value + current;
     }
   } else {
-    if (current >= (-127-value)) {
+    if (current >= (-Node::MAX_VALUE-value)) {
       this->map[index] = value + current;
     }
   }
