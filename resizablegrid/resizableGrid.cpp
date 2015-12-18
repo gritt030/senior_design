@@ -356,3 +356,189 @@ void ResizableGrid::setImagePixel(PngWriter* w, int x, int y, char value){
   w->set_pixel(x, y, color);
 }
 
+
+
+
+
+
+
+
+void ResizableGrid::openSlice(int relX1, int relY1, int relX2, int relY2, float angle, Node* curNode){
+  //information on how we need to move
+  int deltaX = relX2 - relX1;   //distance we need to move
+  int deltaY = relY2 - relY1;
+  int dist = (int)round(sqrt(deltaX*deltaX + deltaY*deltaY)*tan(angle));  //perpendicular distance along one leg
+  
+  //special cases are handled here
+  //single point
+  if ((deltaX == 0) && (deltaY == 0)) {
+    this->openNodeLine(relX1, relY1, relX2, relY2, curNode);
+    return;
+    
+  //vertical line passed in
+  } else if (deltaX == 0) {
+    for (int i=-dist; i<=dist; i++) {
+      this->openNodeLine(relX1, relY1, relX2+i, relY2, curNode);
+    }
+    return;
+    
+  //horizontal line passed in
+  } else if (deltaY == 0) {
+    for (int i=-dist; i<=dist; i++) {
+      this->openNodeLine(relX1, relY1, relX2, relY2+i, curNode);
+    }
+    return;
+  }
+  
+  //get slope we're moving at
+  float slope = -(float)deltaX/(float)deltaY;
+
+  //for block size
+  deltaX = abs(deltaX);
+  deltaY = abs(deltaY);
+  
+  //amount we need to change x and y by to get ends of line
+  int changeX = (int)round(sqrt((float)(dist*dist) / (1.0+slope*slope)));
+  int changeY = (int)round((slope*(float)changeX));
+  
+  //starting and ending points of line
+  int startX = relX2 - changeX;
+  int startY = relY2 - changeY;
+  int endX = relX2 + changeX;
+  int endY = relY2 + changeY;
+  int x = startX;
+  int y = startY;
+  
+  //used to determine how to move
+  int ySign;
+  int block;
+  
+  //how many times we perform the loop for
+  int loop;
+  if (deltaX > deltaY){
+    loop = abs(changeY)<<1;
+    block = deltaX;
+  }
+  else {
+    loop = changeX<<1;
+    block = deltaY;
+  }
+  
+  if (slope < 0) ySign = -1;
+  else ySign = 1;
+  
+  //keep track of pixel transitions
+  int cx = block>>1;
+  int cy = block>>1;
+    
+  this->openNodeLine(relX1, relY1, x, y, curNode);
+  
+  do {
+    cx += deltaY;
+    cy += deltaX;
+    if (cx > block) {
+      x++;
+      cx -= block;
+    }
+    
+    if (cy > block) {
+      y += ySign;
+      cy -= block;
+    }
+    
+    //std::cout <<x<<","<<y<<std::endl;
+    this->openNodeLine(relX1, relY1, x, y, curNode);
+  } while (loop-- > 0);
+}   //*/
+
+
+
+
+void ResizableGrid::closeSlice(int relX1, int relY1, int relX2, int relY2, float angle, Node* curNode){
+  //information on how we need to move
+  int deltaX = relX2 - relX1;   //distance we need to move
+  int deltaY = relY2 - relY1;
+  int dist = (int)round(sqrt(deltaX*deltaX + deltaY*deltaY)*tan(angle));  //perpendicular distance along one leg
+  
+  //special cases are handled here
+  //single point
+  if ((deltaX == 0) && (deltaY == 0)) {
+    this->closeNodeLine(relX1, relY1, relX2, relY2, curNode);
+    return;
+    
+  //vertical line passed in
+  } else if (deltaX == 0) {
+    for (int i=-dist; i<=dist; i++) {
+      this->closeNodeLine(relX1, relY1, relX2+i, relY2, curNode);
+    }
+    return;
+    
+  //horizontal line passed in
+  } else if (deltaY == 0) {
+    for (int i=-dist; i<=dist; i++) {
+      this->closeNodeLine(relX1, relY1, relX2, relY2+i, curNode);
+    }
+    return;
+  }
+  
+  //get slope we're moving at
+  float slope = -(float)deltaX/(float)deltaY;
+
+  //for block size
+  deltaX = abs(deltaX);
+  deltaY = abs(deltaY);
+  
+  //amount we need to change x and y by to get ends of line
+  int changeX = (int)round(sqrt((float)(dist*dist) / (1.0+slope*slope)));
+  int changeY = (int)round((slope*(float)changeX));
+  
+  //starting and ending points of line
+  int startX = relX2 - changeX;
+  int startY = relY2 - changeY;
+  int endX = relX2 + changeX;
+  int endY = relY2 + changeY;
+  int x = startX;
+  int y = startY;
+  
+  //used to determine how to move
+  int ySign;
+  int block;
+  
+  //how many times we perform the loop for
+  int loop;
+  if (deltaX > deltaY){
+    loop = abs(changeY)<<1;
+    block = deltaX;
+  }
+  else {
+    loop = changeX<<1;
+    block = deltaY;
+  }
+  
+  if (slope < 0) ySign = -1;
+  else ySign = 1;
+  
+  //keep track of pixel transitions
+  int cx = block>>1;
+  int cy = block>>1;
+    
+  this->closeNodeLine(relX1, relY1, x, y, curNode);
+  
+  do {
+    cx += deltaY;
+    cy += deltaX;
+    if (cx > block) {
+      x++;
+      cx -= block;
+    }
+    
+    if (cy > block) {
+      y += ySign;
+      cy -= block;
+    }
+    
+    //std::cout <<x<<","<<y<<std::endl;
+    this->closeNodeLine(relX1, relY1, x, y, curNode);
+  } while (loop-- > 0);
+}   //*/
+

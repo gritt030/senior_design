@@ -41,6 +41,9 @@ class ResizableGrid {
     void frontierNodeLine(int relX1, int relY1, int relX2, int relY2, Node* curNode);
     void sendToImage(char* filename);
     
+    void openSlice(int relX1, int relY1, int relX2, int relY2, float angle, Node* curNode);
+    void closeSlice(int relX1, int relY1, int relX2, int relY2, float angle, Node* curNode);
+    
   private:
     //move the root of the map with the quadcopter
     void moveRoot(char dir);
