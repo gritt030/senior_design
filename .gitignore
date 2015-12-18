@@ -5,13 +5,13 @@
 
 # OS generated files #
 ######################
-._*
-.Trashes
-.*~
+*._*
+*.Trashes
+*.*~
 
 # Build directory #
 ###################
 build/
-.kdev4/
-.kdev4
+*.kdev4/
+*.kdev4
 
