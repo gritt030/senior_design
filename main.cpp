@@ -14,9 +14,8 @@
 
 int main(int argc, char **argv) {
   
-  char* imgFile = "/home/owner/pics/cornerfix2.png";
-  char* coordFile = "/home/owner/workspace/Datasets/coords/coords_slowwall.txt";
-  
+  char* imgFile = "/home/owner/pics/loop/1.png";
+  char* coordFile = "/home/owner/workspace/Datasets/loop/coords/coords_loop1.txt";
   
   CoordinateReader* r = new CoordinateReader(coordFile);
   r->updateCoords();
@@ -30,9 +29,9 @@ int main(int argc, char **argv) {
   int* nwson = new int[3];
   int* neson = new int[3];
   bool* range = new bool[4];
-  float angle = 0.18;
+  float angle = 0.28;
   
-  for (int i=0; i<100; i++){
+  for (int i=0; i<3000; i++){
     //std::cout << "---- " << i << " ----" << std::endl;
     //std::cout << "    Position" << std::endl;
     l->triggerUpdate();

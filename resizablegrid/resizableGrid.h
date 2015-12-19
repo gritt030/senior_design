@@ -16,7 +16,7 @@ class ResizableGrid {
     //occupancy variables
     static const char UNKNOWN = 0;
     static const char OPEN = 1;
-    static const char CLOSED = -1;
+    static const char CLOSED = -5;
     static const char FRONTIER = -128;
     static const char THRESHOLD = 0;
     
