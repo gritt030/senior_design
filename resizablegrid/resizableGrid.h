@@ -20,13 +20,19 @@ class ResizableGrid {
     static const char FRONTIER = -128;
     static const char THRESHOLD = 0;
     
-    //color in png output
+    //color in png output TODO: see if these are actually used anywhere
     static const int COLOR_UNKN = 0x888888ff;   //gray
     static const int COLOR_OPEN = 0xffffffff;   //white
     static const int COLOR_CLSD = 0x000080ff;   //blue
     static const int COLOR_FRON = 0xffff00ff;   //yellow
     static const int COLOR_EROR = 0xff0000ff;   //red
     
+    //Gaussian kernels to use to blur image
+    static const int NUM_KERNELS = 8;
+    static const int KERNELS[][NUM_KERNELS + 1];
+    static const int KERNEL_SUMS[];
+    
+    //other variables
     int x, y;   //position of root node
     Node *root; //root node
     
@@ -39,10 +45,17 @@ class ResizableGrid {
     bool openNodeLine(int relX1, int relY1, int relX2, int relY2, Node* curNode); //TODO: make this private
     void closeNodeLine(int relX1, int relY1, int relX2, int relY2, Node* curNode);
     void frontierNodeLine(int relX1, int relY1, int relX2, int relY2, Node* curNode);
-    void sendToImage(char* filename);
     
+    //functions for adding sonar slices to map
     void openSlice(int relX1, int relY1, int relX2, int relY2, float angle, Node* curNode);
     void closeSlice(int relX1, int relY1, int relX2, int relY2, float angle, Node* curNode);
+    
+    //blur the map according to uncertainty
+    void blurMapX(int uncertainty, Node* curNode);
+    void blurMapY(int uncertainty, Node* curNode);
+    
+    //output map as image
+    void sendToImage(char* filename);
     
   private:
     //move the root of the map with the quadcopter

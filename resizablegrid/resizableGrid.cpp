@@ -1,6 +1,19 @@
 
 #include "resizableGrid.h"
 
+//global variables
+const int ResizableGrid::KERNELS[][9] = {{2,1,0,0,0,0,0,0,0},
+                                         {3,2,1,0,0,0,0,0,0},
+                                         {4,3,2,1,0,0,0,0,0},
+                                         {5,4,3,2,1,0,0,0,0},
+                                         {6,5,4,3,2,1,0,0,0},
+                                         {7,6,5,4,3,2,1,0,0},
+                                         {8,7,6,5,4,3,2,1,0},
+                                         {9,8,7,6,5,4,3,2,1}};
+
+const int ResizableGrid::KERNEL_SUMS[] = {3,6,10,15,21,28,36,45};
+
+
 //constructor
 ResizableGrid::ResizableGrid(int x, int y){
   //save position
@@ -541,4 +554,73 @@ void ResizableGrid::closeSlice(int relX1, int relY1, int relX2, int relY2, float
     this->closeNodeLine(relX1, relY1, x, y, curNode);
   } while (loop-- > 0);
 }   //*/
+
+
+
+//blur the map in the x direction
+void ResizableGrid::blurMapX(int uncertainty, Node* curNode){
+  //make sure uncertainty is not too small/large
+  if (uncertainty < 1) return;
+  else if (uncertainty > this->NUM_KERNELS) uncertainty = this->NUM_KERNELS;
+  
+  const int* kernel = this->KERNELS[uncertainty-1];
+  const int kernelSum = this->KERNEL_SUMS[uncertainty-1];
+  char* buffer = new char[uncertainty];
+  
+  for (int i=0; i<Node::GRID_SIZE; i++){
+    for (int j=0; j<Node::GRID_SIZE+uncertainty; j++){
+      //calculate current kernel sum
+      int sum = 0;
+      for (int k=uncertainty; k>0; k--){
+        sum += (int)(curNode->getValue(j-k,i)) * kernel[k];
+        sum += (int)(curNode->getValue(j+k,i)) * kernel[k];
+      }
+      sum += (int)(curNode->getValue(j,i)) * kernel[0];
+      sum /= kernelSum;
+      
+      //set unneeded values to new values
+      curNode->setValue(j-uncertainty,i,buffer[0]);
+      
+      //update buffer
+      for (int k=1; k<uncertainty; k++){
+        buffer[k-1] = buffer[k];
+      }
+      buffer[uncertainty-1] = (char)sum;
+    }
+  }
+}
+
+
+//blur the map in the y direction
+void ResizableGrid::blurMapY(int uncertainty, Node* curNode){
+  //make sure uncertainty is not too small/large
+  if (uncertainty < 1) return;
+  else if (uncertainty > this->NUM_KERNELS) uncertainty = this->NUM_KERNELS;
+  
+  const int* kernel = this->KERNELS[uncertainty-1];
+  const int kernelSum = this->KERNEL_SUMS[uncertainty-1];
+  char* buffer = new char[uncertainty];
+  
+  for (int i=0; i<Node::GRID_SIZE; i++){
+    for (int j=0; j<Node::GRID_SIZE+uncertainty; j++){
+      //calculate current kernel sum
+      int sum = 0;
+      for (int k=uncertainty; k>0; k--){
+        sum += (int)(curNode->getValue(i,j-k)) * kernel[k];
+        sum += (int)(curNode->getValue(i,j+k)) * kernel[k];
+      }
+      sum += (int)(curNode->getValue(i,j)) * kernel[0];
+      sum /= kernelSum;
+      
+      //set unneeded values to new values
+      curNode->setValue(i,j-uncertainty,buffer[0]);
+      
+      //update buffer
+      for (int k=1; k<uncertainty; k++){
+        buffer[k-1] = buffer[k];
+      }
+      buffer[uncertainty-1] = (char)sum;
+    }
+  }
+}
 

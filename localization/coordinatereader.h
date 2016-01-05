@@ -12,7 +12,9 @@ class CoordinateReader
 {
   public:
     CoordinateReader(char* filename);
-    void updateCoords();
+    CoordinateReader();
+    void updateCoordsFile();
+    void updateCoordsVirtual(int* coords);
     
     //get position data
     void getCurrentCoords(int* buffer);

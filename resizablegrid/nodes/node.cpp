@@ -11,7 +11,7 @@ Node::Node() {
 
 //set a value in the grid to a character
 void Node::setValue(int x, int y, char value){
-  //bounds checking TODO:Maybe get rid of this, takes 30ns
+  //bounds checking
   if ((x<0) || (y<0) || (x>=Node::GRID_SIZE) || (y>=Node::GRID_SIZE)) {
     return;
   }
@@ -23,7 +23,7 @@ void Node::setValue(int x, int y, char value){
 
 //change a value in the grid by the amount passed in
 void Node::changeValue(int x, int y, char value){
-  //bounds checking TODO:Maybe get rid of this, takes 30ns
+  //bounds checking
   if ((x<0) || (y<0) || (x>=Node::GRID_SIZE) || (y>=Node::GRID_SIZE)) {
     return;
   }
@@ -45,7 +45,7 @@ void Node::changeValue(int x, int y, char value){
 
 //get the value of a square in the grid
 char Node::getValue(int x, int y){
-  //bounds checking TODO:Maybe get rid of this, takes 30ns
+  //bounds checking
   if ((x<0) || (y<0) || (x>=Node::GRID_SIZE) || (y>=Node::GRID_SIZE)) {
     return 0;
   }

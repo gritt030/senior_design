@@ -8,17 +8,223 @@
 #include "resizablegrid/resizableGrid.h"
 #include "localization/coordinatereader.h"
 #include "localization/localizer.h"
+#include "navigation/virtualenvironment.h"
 
 #include "pngwriter/png_writer.h"
 
 
 int main(int argc, char **argv) {
   
-  char* imgFile = "/home/owner/pics/loop/1.png";
+  
+  char* imgFile = "/home/owner/pics/loop/2.png";
   char* coordFile = "/home/owner/workspace/Datasets/loop/coords/coords_loop1.txt";
   
+  VirtualEnvironment* v = new VirtualEnvironment();
+  v->setPosition(500,500);
+  v->setRotation(0.0f);
+  int* buffer = new int[15];
+  v->getCurrentCoordinates(buffer);
+  
+  CoordinateReader* r = new CoordinateReader();
+  r->updateCoordsVirtual(buffer);
+  
+  Localizer* l = new Localizer(r);
+  ResizableGrid* g = new ResizableGrid(0, 0);
+  
+  int* drone = new int[3];
+  int* weson = new int[3];
+  int* eason = new int[3];
+  int* nwson = new int[3];
+  int* neson = new int[3];
+  bool* range = new bool[4];
+  float angle = 0.14;
+  
+  for (int i=0; i<44; i++){
+    //std::cout << "---- " << i << " ----" << std::endl;
+    //std::cout << "    Position" << std::endl;
+    l->triggerUpdate();
+    l->getPosition(drone);
+    
+    //std::cout << "    Sonar" << std::endl;
+    l->getWSonarPosition(weson);
+    l->getESonarPosition(eason);
+    l->getNWSonarPosition(nwson);
+    l->getNESonarPosition(neson);
+    l->getSonarInRange(range);
+    
+    //std::cout << range[0] << range[1] << range[2] << range[3] << std::endl;
+    
+    /*
+    std::cout << "    Pos: " << drone[0] << ", " << drone[1] << std::endl;
+    std::cout << "    Son: " << weson[0] << ", " << weson[1] << std::endl;
+    std::cout << "    Son: " << nwson[0] << ", " << nwson[1] << std::endl;
+    std::cout << "    Son: " << neson[0] << ", " << neson[1] << std::endl;
+    std::cout << "    Son: " << eason[0] << ", " << eason[1] << std::endl;
+    //*/
+    //std::cout << "    Line" << std::endl;
+    
+    if (range[0]) g->closeSlice(drone[0], drone[1], weson[0], weson[1],angle, g->root);
+    else g->openSlice(drone[0], drone[1], weson[0], weson[1],angle, g->root);
+    
+    if (range[1]) g->closeSlice(drone[0], drone[1], nwson[0], nwson[1],angle, g->root);
+    else g->openSlice(drone[0], drone[1], nwson[0], nwson[1],angle, g->root);
+    
+    if (range[2]) g->closeSlice(drone[0], drone[1], neson[0], neson[1],angle, g->root);
+    else g->openSlice(drone[0], drone[1], neson[0], neson[1],angle, g->root);
+    
+    if (range[3]) g->closeSlice(drone[0], drone[1], eason[0], eason[1],angle, g->root);
+    else g->openSlice(drone[0], drone[1], eason[0], eason[1],angle, g->root);
+    
+    //std::cout << "    Next" << std::endl;
+    v->changePosition(10,0);
+    v->getCurrentCoordinates(buffer);
+    r->updateCoordsVirtual(buffer);
+  }
+  
+  v->setRotation(90.0f);
+  
+  for (int i=0; i<44; i++){
+    l->triggerUpdate();
+    l->getPosition(drone);
+
+    l->getWSonarPosition(weson);
+    l->getESonarPosition(eason);
+    l->getNWSonarPosition(nwson);
+    l->getNESonarPosition(neson);
+    l->getSonarInRange(range);
+    
+    if (range[0]) g->closeSlice(drone[0], drone[1], weson[0], weson[1],angle, g->root);
+    else g->openSlice(drone[0], drone[1], weson[0], weson[1],angle, g->root);
+    
+    if (range[1]) g->closeSlice(drone[0], drone[1], nwson[0], nwson[1],angle, g->root);
+    else g->openSlice(drone[0], drone[1], nwson[0], nwson[1],angle, g->root);
+    
+    if (range[2]) g->closeSlice(drone[0], drone[1], neson[0], neson[1],angle, g->root);
+    else g->openSlice(drone[0], drone[1], neson[0], neson[1],angle, g->root);
+    
+    if (range[3]) g->closeSlice(drone[0], drone[1], eason[0], eason[1],angle, g->root);
+    else g->openSlice(drone[0], drone[1], eason[0], eason[1],angle, g->root);
+    
+    v->changePosition(0,10);
+    v->getCurrentCoordinates(buffer);
+    r->updateCoordsVirtual(buffer);
+  }
+  
+  v->setRotation(180.0f);
+  
+  for (int i=0; i<88; i++){
+    l->triggerUpdate();
+    l->getPosition(drone);
+
+    l->getWSonarPosition(weson);
+    l->getESonarPosition(eason);
+    l->getNWSonarPosition(nwson);
+    l->getNESonarPosition(neson);
+    l->getSonarInRange(range);
+    
+    if (range[0]) g->closeSlice(drone[0], drone[1], weson[0], weson[1],angle, g->root);
+    else g->openSlice(drone[0], drone[1], weson[0], weson[1],angle, g->root);
+    
+    if (range[1]) g->closeSlice(drone[0], drone[1], nwson[0], nwson[1],angle, g->root);
+    else g->openSlice(drone[0], drone[1], nwson[0], nwson[1],angle, g->root);
+    
+    if (range[2]) g->closeSlice(drone[0], drone[1], neson[0], neson[1],angle, g->root);
+    else g->openSlice(drone[0], drone[1], neson[0], neson[1],angle, g->root);
+    
+    if (range[3]) g->closeSlice(drone[0], drone[1], eason[0], eason[1],angle, g->root);
+    else g->openSlice(drone[0], drone[1], eason[0], eason[1],angle, g->root);
+    
+    v->changePosition(-10,0);
+    v->getCurrentCoordinates(buffer);
+    r->updateCoordsVirtual(buffer);
+  }
+  
+  v->setRotation(270.0f);
+  
+  for (int i=0; i<88; i++){
+    l->triggerUpdate();
+    l->getPosition(drone);
+
+    l->getWSonarPosition(weson);
+    l->getESonarPosition(eason);
+    l->getNWSonarPosition(nwson);
+    l->getNESonarPosition(neson);
+    l->getSonarInRange(range);
+    
+    if (range[0]) g->closeSlice(drone[0], drone[1], weson[0], weson[1],angle, g->root);
+    else g->openSlice(drone[0], drone[1], weson[0], weson[1],angle, g->root);
+    
+    if (range[1]) g->closeSlice(drone[0], drone[1], nwson[0], nwson[1],angle, g->root);
+    else g->openSlice(drone[0], drone[1], nwson[0], nwson[1],angle, g->root);
+    
+    if (range[2]) g->closeSlice(drone[0], drone[1], neson[0], neson[1],angle, g->root);
+    else g->openSlice(drone[0], drone[1], neson[0], neson[1],angle, g->root);
+    
+    if (range[3]) g->closeSlice(drone[0], drone[1], eason[0], eason[1],angle, g->root);
+    else g->openSlice(drone[0], drone[1], eason[0], eason[1],angle, g->root);
+    
+    v->changePosition(0,-10);
+    v->getCurrentCoordinates(buffer);
+    r->updateCoordsVirtual(buffer);
+  }
+  
+  v->setRotation(0.0f);
+  
+  for (int i=0; i<44; i++){
+    l->triggerUpdate();
+    l->getPosition(drone);
+
+    l->getWSonarPosition(weson);
+    l->getESonarPosition(eason);
+    l->getNWSonarPosition(nwson);
+    l->getNESonarPosition(neson);
+    l->getSonarInRange(range);
+    
+    if (range[0]) g->closeSlice(drone[0], drone[1], weson[0], weson[1],angle, g->root);
+    else g->openSlice(drone[0], drone[1], weson[0], weson[1],angle, g->root);
+    
+    if (range[1]) g->closeSlice(drone[0], drone[1], nwson[0], nwson[1],angle, g->root);
+    else g->openSlice(drone[0], drone[1], nwson[0], nwson[1],angle, g->root);
+    
+    if (range[2]) g->closeSlice(drone[0], drone[1], neson[0], neson[1],angle, g->root);
+    else g->openSlice(drone[0], drone[1], neson[0], neson[1],angle, g->root);
+    
+    if (range[3]) g->closeSlice(drone[0], drone[1], eason[0], eason[1],angle, g->root);
+    else g->openSlice(drone[0], drone[1], eason[0], eason[1],angle, g->root);
+    
+    v->changePosition(10,0);
+    v->getCurrentCoordinates(buffer);
+    r->updateCoordsVirtual(buffer);
+  }
+  
+  std::cout << "Image" << std::endl;
+  g->sendToImage(imgFile);
+  std::cout << "Done!" << std::endl;
+  return 0; //*/
+  
+  
+  
+  
+  /*
+  ResizableGrid* g = new ResizableGrid(0,0);
+  for (int i=0; i<120; i++) {
+    g->closeNodeLine(-10,10,10,-10, g->root);
+    //g->closeNodeLine(2,2,2,-2, g->root);
+  }
+  g->blurMapX(2, g->root);
+  //g->blurMapX(1, g->root);
+  
+  std::cout << "Image" << std::endl;
+  g->sendToImage(imgFile);
+  std::cout << "Done!" << std::endl;
+  return 0; //*/
+  
+  
+  
+  
+  /*
   CoordinateReader* r = new CoordinateReader(coordFile);
-  r->updateCoords();
+  r->updateCoordsFile();
   
   Localizer* l = new Localizer(r);
   ResizableGrid* g = new ResizableGrid(0, 0);
@@ -63,7 +269,7 @@ int main(int argc, char **argv) {
     else g->openSlice(drone[0], drone[1], eason[0], eason[1],angle, g->root);
     
     //std::cout << "    Next" << std::endl;
-    r->updateCoords();
+    r->updateCoordsFile();
   }
   
   std::cout << "Image" << std::endl;

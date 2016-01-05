@@ -11,7 +11,16 @@ CoordinateReader::CoordinateReader(char* filename){
 }
 
 
-void CoordinateReader::updateCoords(){  
+CoordinateReader::CoordinateReader(){
+  this->currentCoords = new int[15];
+  
+  for (int i=0; i<15; i++){
+    currentCoords[i] = 0;
+  }
+}
+
+
+void CoordinateReader::updateCoordsFile(){  
   long time;
   double x, y, z;
   double nwx, nwy, nwz;
@@ -60,6 +69,30 @@ void CoordinateReader::updateCoords(){
   //*/
 }
 
+
+
+void CoordinateReader::updateCoordsVirtual(int* coords){
+  this->currentCoords[0] = round(coords[0]);
+  this->currentCoords[1] = round(coords[1]);
+  this->currentCoords[2] = round(coords[2]);
+  this->currentCoords[3] = round(coords[3]);
+  this->currentCoords[4] = round(coords[4]);
+  this->currentCoords[5] = round(coords[5]);
+  this->currentCoords[6] = round(coords[6]);
+  this->currentCoords[7] = round(coords[7]);
+  this->currentCoords[8] = round(coords[8]);
+  this->currentCoords[9] = round(coords[9]);
+  this->currentCoords[10] = round(coords[10]);
+  this->currentCoords[11] = round(coords[11]);
+  this->currentCoords[12] = round(coords[12]);
+  this->currentCoords[13] = round(coords[13]);
+  this->currentCoords[14] = round(coords[14]);
+  
+  /*
+  for (int i=0; i<15; i++)
+    std::cout << this->currentCoords[i] << ", ";
+  std::cout << std::endl; //*/
+}
 
 
 //get position data
