@@ -16,11 +16,12 @@
 int main(int argc, char **argv) {
   
   
-  char* imgFile = "/home/owner/pics/loop/2.png";
+  char* imgFile = "/home/owner/pics/loop/1.png";
   char* coordFile = "/home/owner/workspace/Datasets/loop/coords/coords_loop1.txt";
   
+  
   VirtualEnvironment* v = new VirtualEnvironment();
-  v->setPosition(500,500);
+  v->setPosition(60,500);
   v->setRotation(0.0f);
   int* buffer = new int[15];
   v->getCurrentCoordinates(buffer);
@@ -38,8 +39,9 @@ int main(int argc, char **argv) {
   int* neson = new int[3];
   bool* range = new bool[4];
   float angle = 0.14;
+  float dist = 0.0f;
   
-  for (int i=0; i<44; i++){
+  for (int i=0; i<88; i++){
     //std::cout << "---- " << i << " ----" << std::endl;
     //std::cout << "    Position" << std::endl;
     l->triggerUpdate();
@@ -53,7 +55,6 @@ int main(int argc, char **argv) {
     l->getSonarInRange(range);
     
     //std::cout << range[0] << range[1] << range[2] << range[3] << std::endl;
-    
     /*
     std::cout << "    Pos: " << drone[0] << ", " << drone[1] << std::endl;
     std::cout << "    Son: " << weson[0] << ", " << weson[1] << std::endl;
@@ -76,7 +77,7 @@ int main(int argc, char **argv) {
     else g->openSlice(drone[0], drone[1], eason[0], eason[1],angle, g->root);
     
     //std::cout << "    Next" << std::endl;
-    v->changePosition(10,0);
+    v->changePosition(10,0);    
     v->getCurrentCoordinates(buffer);
     r->updateCoordsVirtual(buffer);
   }
@@ -211,8 +212,8 @@ int main(int argc, char **argv) {
     g->closeNodeLine(-10,10,10,-10, g->root);
     //g->closeNodeLine(2,2,2,-2, g->root);
   }
-  g->blurMapX(2, g->root);
-  //g->blurMapX(1, g->root);
+  g->blurMapX(0, g->root);
+  //g->blurMapX(2, g->root);
   
   std::cout << "Image" << std::endl;
   g->sendToImage(imgFile);

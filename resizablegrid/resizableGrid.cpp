@@ -1,17 +1,18 @@
 
 #include "resizableGrid.h"
 
-//global variables
-const int ResizableGrid::KERNELS[][9] = {{2,1,0,0,0,0,0,0,0},
-                                         {3,2,1,0,0,0,0,0,0},
-                                         {4,3,2,1,0,0,0,0,0},
-                                         {5,4,3,2,1,0,0,0,0},
-                                         {6,5,4,3,2,1,0,0,0},
-                                         {7,6,5,4,3,2,1,0,0},
-                                         {8,7,6,5,4,3,2,1,0},
-                                         {9,8,7,6,5,4,3,2,1}};
-
-const int ResizableGrid::KERNEL_SUMS[] = {3,6,10,15,21,28,36,45};
+//gaussian kernels
+const int ResizableGrid::KERNELS[][NUM_KERNELS + 1] = {{13,1,0,0,0,0,0,0,0,0},        //stdev = 0.33 decimeters
+                                                       {45,18,1,0,0,0,0,0,0,0},       //stdev = 0.66
+                                                       {64,40,10,1,0,0,0,0,0,0},      //stdev = 1
+                                                       {74,56,25,7,1,0,0,0,0,0},      //stdev = 1.33
+                                                       {79,66,39,16,5,1,0,0,0,0},     //stdev = 1.66
+                                                       {82,73,50,27,12,4,1,0,0,0},    //stdev = 2
+                                                       {84,77,59,37,20,9,3,1,0,0},    //stdev = 2.33
+                                                       {85,80,65,46,28,15,7,3,1,0},   //stdev = 2.66
+                                                       {86,82,69,53,36,22,12,6,3,1}}; //stdev = 3
+ 
+const int ResizableGrid::KERNEL_SUMS[] = {15,83,166,252,333,416,496,575,654};
 
 
 //constructor
@@ -88,98 +89,6 @@ Node* ResizableGrid::getNode(int x, int y){
 Node* ResizableGrid::getNextNode(int relX, int relY, float dir, Node* curNode){
   return nullptr;
 }
-
-
-
-/*
-//Henry's Algorithm
-//make all squares in a node grid between (x1,y1) and (x2,y2) open
-// -GRID_SIZE/2 <= x1, x2, y1, y2 <= GRID_SIZE/2
-// (0,0) is the central square in the grid
-void ResizableGrid::openNodeLine(int relX1, int relY1, int relX2, int relY2, Node* curNode){
-  //used to correct coordinates when setting values in grid
-  int boundary = Node::GRID_SIZE / 2;
-  
-  //information on how we need to move
-  int x = relX1;                //starting position
-  int y = relY1;
-  int deltaX = relX2 - relX1;   //distance we need to move
-  int deltaY = relY2 - relY1;
-  
-  //special cases are handled here
-  //single point
-  if ((deltaX == 0) && (deltaY == 0)) {
-    curNode->setValue(boundary+x, boundary-y, ResizableGrid::OPEN);
-    return;
-    
-  //vertical line
-  } else if (deltaX == 0) {
-    int signY = deltaY/abs(deltaY);
-    
-    for (int i=0; i<=abs(deltaY); i++) {
-      curNode->setValue(boundary+x, boundary-y, ResizableGrid::OPEN);
-      y += signY;
-    }
-    return;
-    
-  //horizontal line
-  } else if (deltaY == 0) {
-    int signX = deltaX/abs(deltaX);
-    
-    for (int i=0; i<=abs(deltaX); i++) {
-      curNode->setValue(boundary+x, boundary-y, ResizableGrid::OPEN);
-      x += signX;
-    }
-    return;
-  }
-  
-  //if we reach this point, we know line is diagonal
-  int signX = deltaX/abs(deltaX);
-  int signY = deltaY/abs(deltaY);
-  
-  //slope when moving in each direction
-  float slopeX = (float)deltaX / (float)deltaY * (float)signY;
-  float slopeY = (float)deltaY / (float)deltaX * (float)signX;
-  
-  //distance left to wall of current grid square
-  float blockX = 0.5;
-  float blockY = 0.5;
-  
-  //loop through all grid spaces on the line
-  while ((x != relX2) || (y != relY2)) {
-    //set value in grid to open
-    curNode->setValue(boundary+x, boundary-y, ResizableGrid::OPEN);
-    
-    //change in position to next block
-    float chX = fabs(slopeX*blockY);
-    float chY = fabs(slopeY*blockX);
-    
-    //passed through side wall
-    if (blockX < chX) {
-      x += signX;
-      blockX = 1.0f;
-      blockY -= chY;
-      
-    //passed through top wall
-    } else if (blockY < chY) {
-      y += signY;
-      blockY = 1.0f;
-      blockX -= chX;
-      
-    //passed through corner
-    } else {
-      x += signX;
-      y += signY;
-      blockX = 1.0f;
-      blockY = 1.0f;
-    } 
-  }
-  
-  //set final point of line to open
-  curNode->setValue(boundary+relX2, boundary-relY2, ResizableGrid::OPEN);
-}   //*/
-
-
 
 
 //Bresenham's Algorithm
@@ -293,12 +202,7 @@ bool ResizableGrid::openNodeLine(int relX1, int relY1, int relX2, int relY2, Nod
   //set last point in line
   curNode->changeValue(boundary+x, boundary-y, ResizableGrid::OPEN);
   return true;
-}   //*/
-
-
-
-
-
+}
 
 
 //make all squares in a node grid between (x1,y1) and (x2,y2) open and close point (x2,y2)
@@ -462,9 +366,7 @@ void ResizableGrid::openSlice(int relX1, int relY1, int relX2, int relY2, float 
     //std::cout <<x<<","<<y<<std::endl;
     this->openNodeLine(relX1, relY1, x, y, curNode);
   } while (loop-- > 0);
-}   //*/
-
-
+}
 
 
 void ResizableGrid::closeSlice(int relX1, int relY1, int relX2, int relY2, float angle, Node* curNode){
@@ -553,7 +455,10 @@ void ResizableGrid::closeSlice(int relX1, int relY1, int relX2, int relY2, float
     //std::cout <<x<<","<<y<<std::endl;
     this->closeNodeLine(relX1, relY1, x, y, curNode);
   } while (loop-- > 0);
-}   //*/
+}
+
+
+
 
 
 

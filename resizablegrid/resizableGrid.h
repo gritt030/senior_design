@@ -28,7 +28,7 @@ class ResizableGrid {
     static const int COLOR_EROR = 0xff0000ff;   //red
     
     //Gaussian kernels to use to blur image
-    static const int NUM_KERNELS = 8;
+    static const int NUM_KERNELS = 9;
     static const int KERNELS[][NUM_KERNELS + 1];
     static const int KERNEL_SUMS[];
     
