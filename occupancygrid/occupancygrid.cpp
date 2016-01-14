@@ -16,78 +16,9 @@ const int OccupancyGrid::KERNEL_SUMS[] = {15,83,166,252,333,416,496,575,654};
 
 
 //constructor
-OccupancyGrid::OccupancyGrid(int x, int y){
-  //save position
-  this->x = x;
-  this->y = y;
-  
+OccupancyGrid::OccupancyGrid(){
   //create initial root node
-  this->root = new Grid();
-}
-
-
-//add a wall point to the global map
-//position (x1, y1) is the starting point
-//position (x2, y2) is the position of the closed space
-//all spaces between the start and wall are marked as open
-void OccupancyGrid::addClosed(int x1, int y1, int x2, int y2){
-}
-
-
-
-
-//move the root of the map N, S, E, or W to the new position
-//will only move one node at a time
-void OccupancyGrid::moveRoot(char dir){
-  switch (dir) {
-    case 'N':
-      if (this->root->N != nullptr) {
-        this->root = this->root->N;
-        this->y += Grid::GRID_SIZE;
-      }
-      break;
-      
-    case 'S':
-      if (this->root->S != nullptr) {
-        this->root = this->root->S;
-        this->y -= Grid::GRID_SIZE;
-      }
-      break;
-      
-    case 'E':
-      if (this->root->E != nullptr) {
-        this->root = this->root->E;
-        this->x += Grid::GRID_SIZE;
-      }
-      break;
-      
-    case 'W':
-      if (this->root->W != nullptr) {
-        this->root = this->root->W;
-        this->x -= Grid::GRID_SIZE;
-      }
-      break;
-  }
-}
-
-
-//connects a new node to the current node in the given direction
-//side should be N, S, E, W
-void OccupancyGrid::connectNewNode(Grid* curNode, char side){
-  //need search algorithm here
-}
-    
-
-//get the node that contains the given position if it exists
-//if node is not in the map, return nullptr
-//uses A* to search the grid
-Grid* OccupancyGrid::getNode(int x, int y){
-  return nullptr;
-}
-
-
-Grid* OccupancyGrid::getNextNode(int relX, int relY, float dir, Grid* curNode){
-  return nullptr;
+  this->grid = new Grid();
 }
 
 
@@ -95,7 +26,7 @@ Grid* OccupancyGrid::getNextNode(int relX, int relY, float dir, Grid* curNode){
 //make all squares in a node grid between (x1,y1) and (x2,y2) open
 // -GRID_SIZE/2 <= x1, x2, y1, y2 <= GRID_SIZE/2
 // (0,0) is the central square in the grid
-bool OccupancyGrid::openNodeLine(int relX1, int relY1, int relX2, int relY2, Grid* curNode){
+bool OccupancyGrid::openLine(int relX1, int relY1, int relX2, int relY2){
   //used to correct coordinates when setting values in grid
   int boundary = Grid::GRID_SIZE / 2;
   
@@ -109,7 +40,7 @@ bool OccupancyGrid::openNodeLine(int relX1, int relY1, int relX2, int relY2, Gri
   //special cases are handled here
   //single point
   if ((deltaX == 0) && (deltaY == 0)) {
-    curNode->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN);
+    grid->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN);
     return true;
     
   //vertical line
@@ -117,11 +48,11 @@ bool OccupancyGrid::openNodeLine(int relX1, int relY1, int relX2, int relY2, Gri
     signY = deltaY/abs(deltaY);
     
     for (int i=0; i<abs(deltaY); i++) {
-      if (curNode->getValue(boundary+x, boundary-y) < OccupancyGrid::THRESHOLD) {curNode->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN); return false;}
-      curNode->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN);
+      if (grid->getValue(boundary+x, boundary-y) < OccupancyGrid::THRESHOLD) {grid->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN); return false;}
+      grid->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN);
       y += signY;
     }
-    curNode->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN);
+    grid->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN);
     return true;
     
   //horizontal line
@@ -129,11 +60,11 @@ bool OccupancyGrid::openNodeLine(int relX1, int relY1, int relX2, int relY2, Gri
     int signX = deltaX/abs(deltaX);
     
     for (int i=0; i<abs(deltaX); i++) {
-      if (curNode->getValue(boundary+x, boundary-y) < OccupancyGrid::THRESHOLD) {curNode->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN); return false;}
-      curNode->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN);
+      if (grid->getValue(boundary+x, boundary-y) < OccupancyGrid::THRESHOLD) {grid->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN); return false;}
+      grid->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN);
       x += signX;
     }
-    curNode->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN);
+    grid->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN);
     return true;
   }
   
@@ -146,12 +77,12 @@ bool OccupancyGrid::openNodeLine(int relX1, int relY1, int relX2, int relY2, Gri
   //SPECIAL CASE: diagonal line
   if (deltaY == deltaX) {
     for (int i=0; i<deltaX; i++) {
-      if (curNode->getValue(boundary+x, boundary-y) < OccupancyGrid::THRESHOLD) {curNode->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN); return false;}
-      curNode->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN);
+      if (grid->getValue(boundary+x, boundary-y) < OccupancyGrid::THRESHOLD) {grid->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN); return false;}
+      grid->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN);
       x += signX;
       y += signY;
     }
-    curNode->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN);
+    grid->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN);
     return true;
   }
   
@@ -162,16 +93,16 @@ bool OccupancyGrid::openNodeLine(int relX1, int relY1, int relX2, int relY2, Gri
   if (deltaX > deltaY) {
     for (int i=0; i<deltaX; i++) {
       //fill in current grid square
-      if (curNode->getValue(boundary+x, boundary-y) < OccupancyGrid::THRESHOLD) {curNode->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN); return false;}
-      curNode->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN);
+      if (grid->getValue(boundary+x, boundary-y) < OccupancyGrid::THRESHOLD) {grid->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN); return false;}
+      grid->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN);
       
       //see if we need to move vertically
       cy += deltaY;
       if (cy > deltaX) {
         y += signY;
         cy -= deltaX;
-        if (curNode->getValue(boundary+x, boundary-y) < OccupancyGrid::THRESHOLD) {curNode->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN); return false;}
-        curNode->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN);
+        if (grid->getValue(boundary+x, boundary-y) < OccupancyGrid::THRESHOLD) {grid->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN); return false;}
+        grid->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN);
       }
       
       //move horizontally
@@ -182,16 +113,16 @@ bool OccupancyGrid::openNodeLine(int relX1, int relY1, int relX2, int relY2, Gri
   } else {
     for (int i=0; i<deltaY; i++) {
       //fill in current grid square
-      if (curNode->getValue(boundary+x, boundary-y) < OccupancyGrid::THRESHOLD) {curNode->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN); return false;}
-      curNode->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN);
+      if (grid->getValue(boundary+x, boundary-y) < OccupancyGrid::THRESHOLD) {grid->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN); return false;}
+      grid->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN);
       
       //see if we need to move horizontally
       cx += deltaX;
       if (cx > deltaY) {
         x += signX;
         cx -= deltaY;
-        if (curNode->getValue(boundary+x, boundary-y) < OccupancyGrid::THRESHOLD) {curNode->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN); return false;}
-        curNode->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN);
+        if (grid->getValue(boundary+x, boundary-y) < OccupancyGrid::THRESHOLD) {grid->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN); return false;}
+        grid->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN);
       }
       
       //move vertically
@@ -200,7 +131,7 @@ bool OccupancyGrid::openNodeLine(int relX1, int relY1, int relX2, int relY2, Gri
   }
   
   //set last point in line
-  curNode->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN);
+  grid->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN);
   return true;
 }
 
@@ -208,15 +139,15 @@ bool OccupancyGrid::openNodeLine(int relX1, int relY1, int relX2, int relY2, Gri
 //make all squares in a node grid between (x1,y1) and (x2,y2) open and close point (x2,y2)
 // -GRID_SIZE/2 <= x1, x2, y1, y2 <= GRID_SIZE/2
 // (0,0) is the central square in the grid
-void OccupancyGrid::closeNodeLine(int relX1, int relY1, int relX2, int relY2, Grid* curNode){
+void OccupancyGrid::closeLine(int relX1, int relY1, int relX2, int relY2){
   //used to correct coordinates when setting values in grid
   int boundary = Grid::GRID_SIZE / 2;
   
   //open line in grid
-  if (OccupancyGrid::openNodeLine(relX1, relY1, relX2, relY2, curNode)) {
+  if (this->openLine(relX1, relY1, relX2, relY2)) {
     //set final point of line to closed
-    curNode->changeValue(boundary+relX2, boundary-relY2, -OccupancyGrid::OPEN);
-    curNode->changeValue(boundary+relX2, boundary-relY2, OccupancyGrid::CLOSED);
+    grid->changeValue(boundary+relX2, boundary-relY2, -OccupancyGrid::OPEN);
+    grid->changeValue(boundary+relX2, boundary-relY2, OccupancyGrid::CLOSED);
   }
 }
 
@@ -224,14 +155,14 @@ void OccupancyGrid::closeNodeLine(int relX1, int relY1, int relX2, int relY2, Gr
 //make all squares in a node grid between (x1,y1) and (x2,y2) open and frontier point (x2,y2)
 // -GRID_SIZE/2 <= x1, x2, y1, y2 <= GRID_SIZE/2
 // (0,0) is the central square in the grid
-void OccupancyGrid::frontierNodeLine(int relX1, int relY1, int relX2, int relY2, Grid* curNode){
+void OccupancyGrid::frontierLine(int relX1, int relY1, int relX2, int relY2){
   //used to correct coordinates when setting values in grid
   int boundary = Grid::GRID_SIZE / 2;
   
   //open line in grid
-  if (OccupancyGrid::openNodeLine(relX1, relY1, relX2, relY2, curNode)) {
+  if (this->openLine(relX1, relY1, relX2, relY2)) {
     //set final point in line to frontier
-    curNode->setValue(boundary+relX2, boundary-relY2, OccupancyGrid::FRONTIER);
+    grid->setValue(boundary+relX2, boundary-relY2, OccupancyGrid::FRONTIER);
   }
 }
 
@@ -244,7 +175,7 @@ void OccupancyGrid::sendToImage(char* filename){
   
   for (int i=0; i<Grid::GRID_SIZE; i++){
     for (int j=0; j<Grid::GRID_SIZE; j++) {
-      char cur = this->root->getValue(i, j);
+      char cur = grid->getValue(i, j);
       setImagePixel(w, i, j, cur);
     }
   }
@@ -274,13 +205,7 @@ void OccupancyGrid::setImagePixel(PngWriter* w, int x, int y, char value){
 }
 
 
-
-
-
-
-
-
-void OccupancyGrid::openSlice(int relX1, int relY1, int relX2, int relY2, float angle, Grid* curNode){
+void OccupancyGrid::openSlice(int relX1, int relY1, int relX2, int relY2, float angle){
   //information on how we need to move
   int deltaX = relX2 - relX1;   //distance we need to move
   int deltaY = relY2 - relY1;
@@ -289,20 +214,20 @@ void OccupancyGrid::openSlice(int relX1, int relY1, int relX2, int relY2, float 
   //special cases are handled here
   //single point
   if ((deltaX == 0) && (deltaY == 0)) {
-    this->openNodeLine(relX1, relY1, relX2, relY2, curNode);
+    this->openLine(relX1, relY1, relX2, relY2);
     return;
     
   //vertical line passed in
   } else if (deltaX == 0) {
     for (int i=-dist; i<=dist; i++) {
-      this->openNodeLine(relX1, relY1, relX2+i, relY2, curNode);
+      this->openLine(relX1, relY1, relX2+i, relY2);
     }
     return;
     
   //horizontal line passed in
   } else if (deltaY == 0) {
     for (int i=-dist; i<=dist; i++) {
-      this->openNodeLine(relX1, relY1, relX2, relY2+i, curNode);
+      this->openLine(relX1, relY1, relX2, relY2+i);
     }
     return;
   }
@@ -348,7 +273,7 @@ void OccupancyGrid::openSlice(int relX1, int relY1, int relX2, int relY2, float 
   int cx = block>>1;
   int cy = block>>1;
     
-  this->openNodeLine(relX1, relY1, x, y, curNode);
+  this->openLine(relX1, relY1, x, y);
   
   do {
     cx += deltaY;
@@ -364,12 +289,12 @@ void OccupancyGrid::openSlice(int relX1, int relY1, int relX2, int relY2, float 
     }
     
     //std::cout <<x<<","<<y<<std::endl;
-    this->openNodeLine(relX1, relY1, x, y, curNode);
+    this->openLine(relX1, relY1, x, y);
   } while (loop-- > 0);
 }
 
 
-void OccupancyGrid::closeSlice(int relX1, int relY1, int relX2, int relY2, float angle, Grid* curNode){
+void OccupancyGrid::closeSlice(int relX1, int relY1, int relX2, int relY2, float angle){
   //information on how we need to move
   int deltaX = relX2 - relX1;   //distance we need to move
   int deltaY = relY2 - relY1;
@@ -378,20 +303,20 @@ void OccupancyGrid::closeSlice(int relX1, int relY1, int relX2, int relY2, float
   //special cases are handled here
   //single point
   if ((deltaX == 0) && (deltaY == 0)) {
-    this->closeNodeLine(relX1, relY1, relX2, relY2, curNode);
+    this->closeLine(relX1, relY1, relX2, relY2);
     return;
     
   //vertical line passed in
   } else if (deltaX == 0) {
     for (int i=-dist; i<=dist; i++) {
-      this->closeNodeLine(relX1, relY1, relX2+i, relY2, curNode);
+      this->closeLine(relX1, relY1, relX2+i, relY2);
     }
     return;
     
   //horizontal line passed in
   } else if (deltaY == 0) {
     for (int i=-dist; i<=dist; i++) {
-      this->closeNodeLine(relX1, relY1, relX2, relY2+i, curNode);
+      this->closeLine(relX1, relY1, relX2, relY2+i);
     }
     return;
   }
@@ -437,7 +362,7 @@ void OccupancyGrid::closeSlice(int relX1, int relY1, int relX2, int relY2, float
   int cx = block>>1;
   int cy = block>>1;
     
-  this->closeNodeLine(relX1, relY1, x, y, curNode);
+  this->closeLine(relX1, relY1, x, y);
   
   do {
     cx += deltaY;
@@ -453,17 +378,13 @@ void OccupancyGrid::closeSlice(int relX1, int relY1, int relX2, int relY2, float
     }
     
     //std::cout <<x<<","<<y<<std::endl;
-    this->closeNodeLine(relX1, relY1, x, y, curNode);
+    this->closeLine(relX1, relY1, x, y);
   } while (loop-- > 0);
 }
-
-
-
-
 
 
 //blur the map in the x direction
-void OccupancyGrid::blurMapX(int uncertainty, Grid* curNode){
+void OccupancyGrid::blurMapX(int uncertainty){
   //make sure uncertainty is not too small/large
   if (uncertainty < 1) return;
   else if (uncertainty > this->NUM_KERNELS) uncertainty = this->NUM_KERNELS;
@@ -477,14 +398,14 @@ void OccupancyGrid::blurMapX(int uncertainty, Grid* curNode){
       //calculate current kernel sum
       int sum = 0;
       for (int k=uncertainty; k>0; k--){
-        sum += (int)(curNode->getValue(j-k,i)) * kernel[k];
-        sum += (int)(curNode->getValue(j+k,i)) * kernel[k];
+        sum += (int)(grid->getValue(j-k,i)) * kernel[k];
+        sum += (int)(grid->getValue(j+k,i)) * kernel[k];
       }
-      sum += (int)(curNode->getValue(j,i)) * kernel[0];
+      sum += (int)(grid->getValue(j,i)) * kernel[0];
       sum /= kernelSum;
       
       //set unneeded values to new values
-      curNode->setValue(j-uncertainty,i,buffer[0]);
+      grid->setValue(j-uncertainty,i,buffer[0]);
       
       //update buffer
       for (int k=1; k<uncertainty; k++){
@@ -497,7 +418,7 @@ void OccupancyGrid::blurMapX(int uncertainty, Grid* curNode){
 
 
 //blur the map in the y direction
-void OccupancyGrid::blurMapY(int uncertainty, Grid* curNode){
+void OccupancyGrid::blurMapY(int uncertainty){
   //make sure uncertainty is not too small/large
   if (uncertainty < 1) return;
   else if (uncertainty > this->NUM_KERNELS) uncertainty = this->NUM_KERNELS;
@@ -511,14 +432,14 @@ void OccupancyGrid::blurMapY(int uncertainty, Grid* curNode){
       //calculate current kernel sum
       int sum = 0;
       for (int k=uncertainty; k>0; k--){
-        sum += (int)(curNode->getValue(i,j-k)) * kernel[k];
-        sum += (int)(curNode->getValue(i,j+k)) * kernel[k];
+        sum += (int)(grid->getValue(i,j-k)) * kernel[k];
+        sum += (int)(grid->getValue(i,j+k)) * kernel[k];
       }
-      sum += (int)(curNode->getValue(i,j)) * kernel[0];
+      sum += (int)(grid->getValue(i,j)) * kernel[0];
       sum /= kernelSum;
       
       //set unneeded values to new values
-      curNode->setValue(i,j-uncertainty,buffer[0]);
+      grid->setValue(i,j-uncertainty,buffer[0]);
       
       //update buffer
       for (int k=1; k<uncertainty; k++){

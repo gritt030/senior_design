@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
   r->updateCoordsFile();
   
   Localizer* l = new Localizer(r);
-  OccupancyGrid* g = new OccupancyGrid(0, 0);
+  OccupancyGrid* g = new OccupancyGrid();
   
   int* drone = new int[3];
   int* weson = new int[3];
@@ -52,17 +52,17 @@ int main(int argc, char **argv) {
     //std::cout << "    Son: " << weson[0] << ", " << weson[1] << std::endl;
     //std::cout << "    Line" << std::endl;
     
-    if (range[0]) g->closeSlice(drone[0], drone[1], weson[0], weson[1],angle, g->root);
-    else g->openSlice(drone[0], drone[1], weson[0], weson[1],angle, g->root);
+    if (range[0]) g->closeSlice(drone[0], drone[1], weson[0], weson[1],angle);
+    else g->openSlice(drone[0], drone[1], weson[0], weson[1],angle);
     
-    if (range[1]) g->closeSlice(drone[0], drone[1], nwson[0], nwson[1],angle, g->root);
-    else g->openSlice(drone[0], drone[1], nwson[0], nwson[1],angle, g->root);
+    if (range[1]) g->closeSlice(drone[0], drone[1], nwson[0], nwson[1],angle);
+    else g->openSlice(drone[0], drone[1], nwson[0], nwson[1],angle);
     
-    if (range[2]) g->closeSlice(drone[0], drone[1], neson[0], neson[1],angle, g->root);
-    else g->openSlice(drone[0], drone[1], neson[0], neson[1],angle, g->root);
+    if (range[2]) g->closeSlice(drone[0], drone[1], neson[0], neson[1],angle);
+    else g->openSlice(drone[0], drone[1], neson[0], neson[1],angle);
     
-    if (range[3]) g->closeSlice(drone[0], drone[1], eason[0], eason[1],angle, g->root);
-    else g->openSlice(drone[0], drone[1], eason[0], eason[1],angle, g->root);
+    if (range[3]) g->closeSlice(drone[0], drone[1], eason[0], eason[1],angle);
+    else g->openSlice(drone[0], drone[1], eason[0], eason[1],angle);
     
     //std::cout << "    Next" << std::endl;
     r->updateCoordsFile();

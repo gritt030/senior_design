@@ -32,41 +32,31 @@ class OccupancyGrid {
     static const int KERNELS[][NUM_KERNELS + 1];
     static const int KERNEL_SUMS[];
     
+    //TODO: Make private
     //other variables
-    int x, y;   //position of root node
-    Grid *root; //root node
+    Grid *grid; //occupancy grid
     
     //constructor
-    OccupancyGrid(int x, int y);
+    OccupancyGrid();
     
     //functions for adding to map
-    void addClosed(int x1, int y1, int x2, int y2);
-    void addFrontier(int x1, int y1, int x2, int y2);
-    bool openNodeLine(int relX1, int relY1, int relX2, int relY2, Grid* curNode); //TODO: make this private
-    void closeNodeLine(int relX1, int relY1, int relX2, int relY2, Grid* curNode);
-    void frontierNodeLine(int relX1, int relY1, int relX2, int relY2, Grid* curNode);
+    bool openLine(int relX1, int relY1, int relX2, int relY2); //TODO: make this private
+    void closeLine(int relX1, int relY1, int relX2, int relY2);
+    void frontierLine(int relX1, int relY1, int relX2, int relY2);
     
     //functions for adding sonar slices to map
-    void openSlice(int relX1, int relY1, int relX2, int relY2, float angle, Grid* curNode);
-    void closeSlice(int relX1, int relY1, int relX2, int relY2, float angle, Grid* curNode);
+    void openSlice(int relX1, int relY1, int relX2, int relY2, float angle);
+    void closeSlice(int relX1, int relY1, int relX2, int relY2, float angle);
     
     //blur the map according to uncertainty
-    void blurMapX(int uncertainty, Grid* curNode);
-    void blurMapY(int uncertainty, Grid* curNode);
+    void blurMapX(int uncertainty);
+    void blurMapY(int uncertainty);
     
     //output map as image
     void sendToImage(char* filename);
     
   private:
-    //move the root of the map with the quadcopter
-    void moveRoot(char dir);
-    
-    //add a new node to the map
-    void connectNewNode(Grid* curNode, char side);
-    
-    //functions for moving around the map
-    Grid* getNode(int x, int y);
-    Grid* getNextNode(int relX, int relY, float dir, Grid* curNode);
+    //set a pixel in the image
     void setImagePixel(PngWriter* w, int x, int y, char value);
     
 };
