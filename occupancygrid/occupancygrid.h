@@ -1,6 +1,6 @@
 
-#ifndef RG_RESIZABLE_GRID_
-#define RG_RESIZABLE_GRID_
+#ifndef OG_OCCUPANCY_GRID_
+#define OG_OCCUPANCY_GRID_
 
 #include <iostream> //TODO: remove
 #include <string>   //TODO: remove
@@ -8,15 +8,15 @@
 #include <cmath>
 #include <algorithm>
 
-#include "nodes/node.h"
+#include "grid/grid.h"
 #include "./../pngwriter/png_writer.h"
 
-class ResizableGrid {
+class OccupancyGrid {
   public:
     //occupancy variables
     static const char UNKNOWN = 0;
     static const char OPEN = 1;
-    static const char CLOSED = -5;
+    static const char CLOSED = -7;
     static const char FRONTIER = -128;
     static const char THRESHOLD = 0;
     
@@ -34,25 +34,25 @@ class ResizableGrid {
     
     //other variables
     int x, y;   //position of root node
-    Node *root; //root node
+    Grid *root; //root node
     
     //constructor
-    ResizableGrid(int x, int y);
+    OccupancyGrid(int x, int y);
     
     //functions for adding to map
     void addClosed(int x1, int y1, int x2, int y2);
     void addFrontier(int x1, int y1, int x2, int y2);
-    bool openNodeLine(int relX1, int relY1, int relX2, int relY2, Node* curNode); //TODO: make this private
-    void closeNodeLine(int relX1, int relY1, int relX2, int relY2, Node* curNode);
-    void frontierNodeLine(int relX1, int relY1, int relX2, int relY2, Node* curNode);
+    bool openNodeLine(int relX1, int relY1, int relX2, int relY2, Grid* curNode); //TODO: make this private
+    void closeNodeLine(int relX1, int relY1, int relX2, int relY2, Grid* curNode);
+    void frontierNodeLine(int relX1, int relY1, int relX2, int relY2, Grid* curNode);
     
     //functions for adding sonar slices to map
-    void openSlice(int relX1, int relY1, int relX2, int relY2, float angle, Node* curNode);
-    void closeSlice(int relX1, int relY1, int relX2, int relY2, float angle, Node* curNode);
+    void openSlice(int relX1, int relY1, int relX2, int relY2, float angle, Grid* curNode);
+    void closeSlice(int relX1, int relY1, int relX2, int relY2, float angle, Grid* curNode);
     
     //blur the map according to uncertainty
-    void blurMapX(int uncertainty, Node* curNode);
-    void blurMapY(int uncertainty, Node* curNode);
+    void blurMapX(int uncertainty, Grid* curNode);
+    void blurMapY(int uncertainty, Grid* curNode);
     
     //output map as image
     void sendToImage(char* filename);
@@ -62,11 +62,11 @@ class ResizableGrid {
     void moveRoot(char dir);
     
     //add a new node to the map
-    void connectNewNode(Node* curNode, char side);
+    void connectNewNode(Grid* curNode, char side);
     
     //functions for moving around the map
-    Node* getNode(int x, int y);
-    Node* getNextNode(int relX, int relY, float dir, Node* curNode);
+    Grid* getNode(int x, int y);
+    Grid* getNextNode(int relX, int relY, float dir, Grid* curNode);
     void setImagePixel(PngWriter* w, int x, int y, char value);
     
 };

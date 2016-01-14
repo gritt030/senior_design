@@ -1,17 +1,17 @@
 
-#ifndef RGRID_NODE_
-#define RGRID_NODE_
+#ifndef OG_GRID_
+#define OG_GRID_
 
 #include <iostream> //TODO:remove
 
-class Node {
+class Grid {
   public:
-    static const int GRID_SIZE = 161;   //size of one side of the grid (odd) 61 for good data structure
+    static const int GRID_SIZE = 1611;   //size of one side of the grid (odd) 61 for good data structure
     static const char MAX_VALUE = 127;  //maximum value we can have in a grid square
     char *map;                          //occupancy grid for this node
     
     //neighbors in linked list
-    Node *N=nullptr,    //y increasing
+    Grid *N=nullptr,    //y increasing
          *S=nullptr,    //y decreasing
          *E=nullptr,    //x increasing
          *W=nullptr;    //x decreasing
@@ -21,7 +21,7 @@ class Node {
             //nodes need 2 or 3 neighbors at the most.
     
     //constructor
-    Node();
+    Grid();
     
     //set and get values in grid
     void setValue(int x, int y, char value);

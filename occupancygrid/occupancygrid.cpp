@@ -1,8 +1,8 @@
 
-#include "resizableGrid.h"
+#include "occupancygrid.h"
 
 //gaussian kernels
-const int ResizableGrid::KERNELS[][NUM_KERNELS + 1] = {{13,1,0,0,0,0,0,0,0,0},        //stdev = 0.33 decimeters
+const int OccupancyGrid::KERNELS[][NUM_KERNELS + 1] = {{13,1,0,0,0,0,0,0,0,0},        //stdev = 0.33 decimeters
                                                        {45,18,1,0,0,0,0,0,0,0},       //stdev = 0.66
                                                        {64,40,10,1,0,0,0,0,0,0},      //stdev = 1
                                                        {74,56,25,7,1,0,0,0,0,0},      //stdev = 1.33
@@ -12,17 +12,17 @@ const int ResizableGrid::KERNELS[][NUM_KERNELS + 1] = {{13,1,0,0,0,0,0,0,0,0},  
                                                        {85,80,65,46,28,15,7,3,1,0},   //stdev = 2.66
                                                        {86,82,69,53,36,22,12,6,3,1}}; //stdev = 3
  
-const int ResizableGrid::KERNEL_SUMS[] = {15,83,166,252,333,416,496,575,654};
+const int OccupancyGrid::KERNEL_SUMS[] = {15,83,166,252,333,416,496,575,654};
 
 
 //constructor
-ResizableGrid::ResizableGrid(int x, int y){
+OccupancyGrid::OccupancyGrid(int x, int y){
   //save position
   this->x = x;
   this->y = y;
   
   //create initial root node
-  this->root = new Node();
+  this->root = new Grid();
 }
 
 
@@ -30,7 +30,7 @@ ResizableGrid::ResizableGrid(int x, int y){
 //position (x1, y1) is the starting point
 //position (x2, y2) is the position of the closed space
 //all spaces between the start and wall are marked as open
-void ResizableGrid::addClosed(int x1, int y1, int x2, int y2){
+void OccupancyGrid::addClosed(int x1, int y1, int x2, int y2){
 }
 
 
@@ -38,33 +38,33 @@ void ResizableGrid::addClosed(int x1, int y1, int x2, int y2){
 
 //move the root of the map N, S, E, or W to the new position
 //will only move one node at a time
-void ResizableGrid::moveRoot(char dir){
+void OccupancyGrid::moveRoot(char dir){
   switch (dir) {
     case 'N':
       if (this->root->N != nullptr) {
         this->root = this->root->N;
-        this->y += Node::GRID_SIZE;
+        this->y += Grid::GRID_SIZE;
       }
       break;
       
     case 'S':
       if (this->root->S != nullptr) {
         this->root = this->root->S;
-        this->y -= Node::GRID_SIZE;
+        this->y -= Grid::GRID_SIZE;
       }
       break;
       
     case 'E':
       if (this->root->E != nullptr) {
         this->root = this->root->E;
-        this->x += Node::GRID_SIZE;
+        this->x += Grid::GRID_SIZE;
       }
       break;
       
     case 'W':
       if (this->root->W != nullptr) {
         this->root = this->root->W;
-        this->x -= Node::GRID_SIZE;
+        this->x -= Grid::GRID_SIZE;
       }
       break;
   }
@@ -73,7 +73,7 @@ void ResizableGrid::moveRoot(char dir){
 
 //connects a new node to the current node in the given direction
 //side should be N, S, E, W
-void ResizableGrid::connectNewNode(Node* curNode, char side){
+void OccupancyGrid::connectNewNode(Grid* curNode, char side){
   //need search algorithm here
 }
     
@@ -81,12 +81,12 @@ void ResizableGrid::connectNewNode(Node* curNode, char side){
 //get the node that contains the given position if it exists
 //if node is not in the map, return nullptr
 //uses A* to search the grid
-Node* ResizableGrid::getNode(int x, int y){
+Grid* OccupancyGrid::getNode(int x, int y){
   return nullptr;
 }
 
 
-Node* ResizableGrid::getNextNode(int relX, int relY, float dir, Node* curNode){
+Grid* OccupancyGrid::getNextNode(int relX, int relY, float dir, Grid* curNode){
   return nullptr;
 }
 
@@ -95,9 +95,9 @@ Node* ResizableGrid::getNextNode(int relX, int relY, float dir, Node* curNode){
 //make all squares in a node grid between (x1,y1) and (x2,y2) open
 // -GRID_SIZE/2 <= x1, x2, y1, y2 <= GRID_SIZE/2
 // (0,0) is the central square in the grid
-bool ResizableGrid::openNodeLine(int relX1, int relY1, int relX2, int relY2, Node* curNode){
+bool OccupancyGrid::openNodeLine(int relX1, int relY1, int relX2, int relY2, Grid* curNode){
   //used to correct coordinates when setting values in grid
-  int boundary = Node::GRID_SIZE / 2;
+  int boundary = Grid::GRID_SIZE / 2;
   
   //information on how we need to move
   int x = relX1;                //position variables
@@ -109,7 +109,7 @@ bool ResizableGrid::openNodeLine(int relX1, int relY1, int relX2, int relY2, Nod
   //special cases are handled here
   //single point
   if ((deltaX == 0) && (deltaY == 0)) {
-    curNode->changeValue(boundary+x, boundary-y, ResizableGrid::OPEN);
+    curNode->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN);
     return true;
     
   //vertical line
@@ -117,11 +117,11 @@ bool ResizableGrid::openNodeLine(int relX1, int relY1, int relX2, int relY2, Nod
     signY = deltaY/abs(deltaY);
     
     for (int i=0; i<abs(deltaY); i++) {
-      if (curNode->getValue(boundary+x, boundary-y) < ResizableGrid::THRESHOLD) {curNode->changeValue(boundary+x, boundary-y, ResizableGrid::OPEN); return false;}
-      curNode->changeValue(boundary+x, boundary-y, ResizableGrid::OPEN);
+      if (curNode->getValue(boundary+x, boundary-y) < OccupancyGrid::THRESHOLD) {curNode->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN); return false;}
+      curNode->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN);
       y += signY;
     }
-    curNode->changeValue(boundary+x, boundary-y, ResizableGrid::OPEN);
+    curNode->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN);
     return true;
     
   //horizontal line
@@ -129,11 +129,11 @@ bool ResizableGrid::openNodeLine(int relX1, int relY1, int relX2, int relY2, Nod
     int signX = deltaX/abs(deltaX);
     
     for (int i=0; i<abs(deltaX); i++) {
-      if (curNode->getValue(boundary+x, boundary-y) < ResizableGrid::THRESHOLD) {curNode->changeValue(boundary+x, boundary-y, ResizableGrid::OPEN); return false;}
-      curNode->changeValue(boundary+x, boundary-y, ResizableGrid::OPEN);
+      if (curNode->getValue(boundary+x, boundary-y) < OccupancyGrid::THRESHOLD) {curNode->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN); return false;}
+      curNode->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN);
       x += signX;
     }
-    curNode->changeValue(boundary+x, boundary-y, ResizableGrid::OPEN);
+    curNode->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN);
     return true;
   }
   
@@ -146,12 +146,12 @@ bool ResizableGrid::openNodeLine(int relX1, int relY1, int relX2, int relY2, Nod
   //SPECIAL CASE: diagonal line
   if (deltaY == deltaX) {
     for (int i=0; i<deltaX; i++) {
-      if (curNode->getValue(boundary+x, boundary-y) < ResizableGrid::THRESHOLD) {curNode->changeValue(boundary+x, boundary-y, ResizableGrid::OPEN); return false;}
-      curNode->changeValue(boundary+x, boundary-y, ResizableGrid::OPEN);
+      if (curNode->getValue(boundary+x, boundary-y) < OccupancyGrid::THRESHOLD) {curNode->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN); return false;}
+      curNode->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN);
       x += signX;
       y += signY;
     }
-    curNode->changeValue(boundary+x, boundary-y, ResizableGrid::OPEN);
+    curNode->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN);
     return true;
   }
   
@@ -162,16 +162,16 @@ bool ResizableGrid::openNodeLine(int relX1, int relY1, int relX2, int relY2, Nod
   if (deltaX > deltaY) {
     for (int i=0; i<deltaX; i++) {
       //fill in current grid square
-      if (curNode->getValue(boundary+x, boundary-y) < ResizableGrid::THRESHOLD) {curNode->changeValue(boundary+x, boundary-y, ResizableGrid::OPEN); return false;}
-      curNode->changeValue(boundary+x, boundary-y, ResizableGrid::OPEN);
+      if (curNode->getValue(boundary+x, boundary-y) < OccupancyGrid::THRESHOLD) {curNode->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN); return false;}
+      curNode->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN);
       
       //see if we need to move vertically
       cy += deltaY;
       if (cy > deltaX) {
         y += signY;
         cy -= deltaX;
-        if (curNode->getValue(boundary+x, boundary-y) < ResizableGrid::THRESHOLD) {curNode->changeValue(boundary+x, boundary-y, ResizableGrid::OPEN); return false;}
-        curNode->changeValue(boundary+x, boundary-y, ResizableGrid::OPEN);
+        if (curNode->getValue(boundary+x, boundary-y) < OccupancyGrid::THRESHOLD) {curNode->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN); return false;}
+        curNode->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN);
       }
       
       //move horizontally
@@ -182,16 +182,16 @@ bool ResizableGrid::openNodeLine(int relX1, int relY1, int relX2, int relY2, Nod
   } else {
     for (int i=0; i<deltaY; i++) {
       //fill in current grid square
-      if (curNode->getValue(boundary+x, boundary-y) < ResizableGrid::THRESHOLD) {curNode->changeValue(boundary+x, boundary-y, ResizableGrid::OPEN); return false;}
-      curNode->changeValue(boundary+x, boundary-y, ResizableGrid::OPEN);
+      if (curNode->getValue(boundary+x, boundary-y) < OccupancyGrid::THRESHOLD) {curNode->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN); return false;}
+      curNode->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN);
       
       //see if we need to move horizontally
       cx += deltaX;
       if (cx > deltaY) {
         x += signX;
         cx -= deltaY;
-        if (curNode->getValue(boundary+x, boundary-y) < ResizableGrid::THRESHOLD) {curNode->changeValue(boundary+x, boundary-y, ResizableGrid::OPEN); return false;}
-        curNode->changeValue(boundary+x, boundary-y, ResizableGrid::OPEN);
+        if (curNode->getValue(boundary+x, boundary-y) < OccupancyGrid::THRESHOLD) {curNode->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN); return false;}
+        curNode->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN);
       }
       
       //move vertically
@@ -200,7 +200,7 @@ bool ResizableGrid::openNodeLine(int relX1, int relY1, int relX2, int relY2, Nod
   }
   
   //set last point in line
-  curNode->changeValue(boundary+x, boundary-y, ResizableGrid::OPEN);
+  curNode->changeValue(boundary+x, boundary-y, OccupancyGrid::OPEN);
   return true;
 }
 
@@ -208,15 +208,15 @@ bool ResizableGrid::openNodeLine(int relX1, int relY1, int relX2, int relY2, Nod
 //make all squares in a node grid between (x1,y1) and (x2,y2) open and close point (x2,y2)
 // -GRID_SIZE/2 <= x1, x2, y1, y2 <= GRID_SIZE/2
 // (0,0) is the central square in the grid
-void ResizableGrid::closeNodeLine(int relX1, int relY1, int relX2, int relY2, Node* curNode){
+void OccupancyGrid::closeNodeLine(int relX1, int relY1, int relX2, int relY2, Grid* curNode){
   //used to correct coordinates when setting values in grid
-  int boundary = Node::GRID_SIZE / 2;
+  int boundary = Grid::GRID_SIZE / 2;
   
   //open line in grid
-  if (ResizableGrid::openNodeLine(relX1, relY1, relX2, relY2, curNode)) {
+  if (OccupancyGrid::openNodeLine(relX1, relY1, relX2, relY2, curNode)) {
     //set final point of line to closed
-    curNode->changeValue(boundary+relX2, boundary-relY2, -ResizableGrid::OPEN);
-    curNode->changeValue(boundary+relX2, boundary-relY2, ResizableGrid::CLOSED);
+    curNode->changeValue(boundary+relX2, boundary-relY2, -OccupancyGrid::OPEN);
+    curNode->changeValue(boundary+relX2, boundary-relY2, OccupancyGrid::CLOSED);
   }
 }
 
@@ -224,26 +224,26 @@ void ResizableGrid::closeNodeLine(int relX1, int relY1, int relX2, int relY2, No
 //make all squares in a node grid between (x1,y1) and (x2,y2) open and frontier point (x2,y2)
 // -GRID_SIZE/2 <= x1, x2, y1, y2 <= GRID_SIZE/2
 // (0,0) is the central square in the grid
-void ResizableGrid::frontierNodeLine(int relX1, int relY1, int relX2, int relY2, Node* curNode){
+void OccupancyGrid::frontierNodeLine(int relX1, int relY1, int relX2, int relY2, Grid* curNode){
   //used to correct coordinates when setting values in grid
-  int boundary = Node::GRID_SIZE / 2;
+  int boundary = Grid::GRID_SIZE / 2;
   
   //open line in grid
-  if (ResizableGrid::openNodeLine(relX1, relY1, relX2, relY2, curNode)) {
+  if (OccupancyGrid::openNodeLine(relX1, relY1, relX2, relY2, curNode)) {
     //set final point in line to frontier
-    curNode->setValue(boundary+relX2, boundary-relY2, ResizableGrid::FRONTIER);
+    curNode->setValue(boundary+relX2, boundary-relY2, OccupancyGrid::FRONTIER);
   }
 }
 
 
-void ResizableGrid::sendToImage(char* filename){
+void OccupancyGrid::sendToImage(char* filename){
   PngWriter* w = new PngWriter();
-  int size = Node::GRID_SIZE;
+  int size = Grid::GRID_SIZE;
   
   w->create_image(filename, size, size);
   
-  for (int i=0; i<Node::GRID_SIZE; i++){
-    for (int j=0; j<Node::GRID_SIZE; j++) {
+  for (int i=0; i<Grid::GRID_SIZE; i++){
+    for (int j=0; j<Grid::GRID_SIZE; j++) {
       char cur = this->root->getValue(i, j);
       setImagePixel(w, i, j, cur);
     }
@@ -254,7 +254,7 @@ void ResizableGrid::sendToImage(char* filename){
 }
 
 
-void ResizableGrid::setImagePixel(PngWriter* w, int x, int y, char value){
+void OccupancyGrid::setImagePixel(PngWriter* w, int x, int y, char value){
   int color;
   
   //open map square
@@ -280,7 +280,7 @@ void ResizableGrid::setImagePixel(PngWriter* w, int x, int y, char value){
 
 
 
-void ResizableGrid::openSlice(int relX1, int relY1, int relX2, int relY2, float angle, Node* curNode){
+void OccupancyGrid::openSlice(int relX1, int relY1, int relX2, int relY2, float angle, Grid* curNode){
   //information on how we need to move
   int deltaX = relX2 - relX1;   //distance we need to move
   int deltaY = relY2 - relY1;
@@ -369,7 +369,7 @@ void ResizableGrid::openSlice(int relX1, int relY1, int relX2, int relY2, float 
 }
 
 
-void ResizableGrid::closeSlice(int relX1, int relY1, int relX2, int relY2, float angle, Node* curNode){
+void OccupancyGrid::closeSlice(int relX1, int relY1, int relX2, int relY2, float angle, Grid* curNode){
   //information on how we need to move
   int deltaX = relX2 - relX1;   //distance we need to move
   int deltaY = relY2 - relY1;
@@ -463,7 +463,7 @@ void ResizableGrid::closeSlice(int relX1, int relY1, int relX2, int relY2, float
 
 
 //blur the map in the x direction
-void ResizableGrid::blurMapX(int uncertainty, Node* curNode){
+void OccupancyGrid::blurMapX(int uncertainty, Grid* curNode){
   //make sure uncertainty is not too small/large
   if (uncertainty < 1) return;
   else if (uncertainty > this->NUM_KERNELS) uncertainty = this->NUM_KERNELS;
@@ -472,8 +472,8 @@ void ResizableGrid::blurMapX(int uncertainty, Node* curNode){
   const int kernelSum = this->KERNEL_SUMS[uncertainty-1];
   char* buffer = new char[uncertainty];
   
-  for (int i=0; i<Node::GRID_SIZE; i++){
-    for (int j=0; j<Node::GRID_SIZE+uncertainty; j++){
+  for (int i=0; i<Grid::GRID_SIZE; i++){
+    for (int j=0; j<Grid::GRID_SIZE+uncertainty; j++){
       //calculate current kernel sum
       int sum = 0;
       for (int k=uncertainty; k>0; k--){
@@ -497,7 +497,7 @@ void ResizableGrid::blurMapX(int uncertainty, Node* curNode){
 
 
 //blur the map in the y direction
-void ResizableGrid::blurMapY(int uncertainty, Node* curNode){
+void OccupancyGrid::blurMapY(int uncertainty, Grid* curNode){
   //make sure uncertainty is not too small/large
   if (uncertainty < 1) return;
   else if (uncertainty > this->NUM_KERNELS) uncertainty = this->NUM_KERNELS;
@@ -506,8 +506,8 @@ void ResizableGrid::blurMapY(int uncertainty, Node* curNode){
   const int kernelSum = this->KERNEL_SUMS[uncertainty-1];
   char* buffer = new char[uncertainty];
   
-  for (int i=0; i<Node::GRID_SIZE; i++){
-    for (int j=0; j<Node::GRID_SIZE+uncertainty; j++){
+  for (int i=0; i<Grid::GRID_SIZE; i++){
+    for (int j=0; j<Grid::GRID_SIZE+uncertainty; j++){
       //calculate current kernel sum
       int sum = 0;
       for (int k=uncertainty; k>0; k--){
