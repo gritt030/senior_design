@@ -1,11 +1,14 @@
 
 #include "grid.h"
 
-
-//1 square per byte
 //constructor, create grid
 Grid::Grid() {
   this->map = new char[GRID_SIZE * GRID_SIZE]();
+}
+
+//destructor, destroy grid
+Grid::~Grid() {
+  delete this->map;
 }
 
 
@@ -54,3 +57,4 @@ char Grid::getValue(int x, int y){
   char value = this->map[y*Grid::GRID_SIZE + x];
   return value;
 }
+

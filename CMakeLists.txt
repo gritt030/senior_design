@@ -14,4 +14,4 @@ add_subdirectory(localization)
 add_subdirectory(navigation)
 add_subdirectory(sonar)
 
-target_link_libraries(quadcopter navigate localizer occupancy_grid png_writer -lpng -lz)
+target_link_libraries(quadcopter navigate localizer occupancy_grid sonar png_writer -lpng -lz)

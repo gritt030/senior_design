@@ -177,3 +177,29 @@ void Localizer::updateSonars(){
   this->currentSonarDists[IND_NED] = all[2];
   this->currentSonarDists[IND_ED] = all[3];
 }
+
+
+//get raw data values with errors
+
+//x, y, z, xerr, yerr, zerr
+void Localizer::getRawPosition(double* buffer){
+  buffer[0] = this->currentCoords[IND_X];
+  buffer[1] = this->currentCoords[IND_Y];
+  buffer[2] = this->currentCoords[IND_Z];
+}
+
+
+//TODO: fix this
+//roll, pitch, yaw, yawerr
+void Localizer::getRawHeading(double* buffer){
+
+}
+
+
+//w, nw, ne, e
+void Localizer::getRawSonarDists(int* buffer){
+  buffer[0] = this->currentSonarDists[IND_WD];
+  buffer[1] = this->currentSonarDists[IND_NWD];
+  buffer[2] = this->currentSonarDists[IND_NED];
+  buffer[3] = this->currentSonarDists[IND_ED];
+}

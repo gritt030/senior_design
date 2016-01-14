@@ -36,8 +36,9 @@ class OccupancyGrid {
     //other variables
     Grid *grid; //occupancy grid
     
-    //constructor
+    //constructor/destructor
     OccupancyGrid();
+    ~OccupancyGrid();
     
     //functions for adding to map
     bool openLine(int relX1, int relY1, int relX2, int relY2); //TODO: make this private
@@ -51,6 +52,9 @@ class OccupancyGrid {
     //blur the map according to uncertainty
     void blurMapX(int uncertainty);
     void blurMapY(int uncertainty);
+    
+    //combine two occupancy maps
+    void mergeMaps(OccupancyGrid* newGrid);
     
     //output map as image
     void sendToImage(char* filename);

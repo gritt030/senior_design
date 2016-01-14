@@ -9,21 +9,24 @@
 #include "localization/coordinatereader.h"
 #include "localization/localizer.h"
 #include "navigation/virtualenvironment.h"
+#include "sonar/sonarscan.h"
+#include "sonar/sonararchive.h"
 
 #include "pngwriter/png_writer.h"
 
 
 int main(int argc, char **argv) {
   
-  
-  char* imgFile = "/home/owner/pics/large/dataset2_thin.png";
-  char* coordFile = "/home/owner/workspace/Datasets/output_ds2/coords.txt";
+  char* imgFile = "/home/owner/pics/large/blurLocal.png";
+  char* imgFile2 = "/home/owner/pics/large/blurGlobal.png";
+  char* coordFile = "/home/owner/workspace/Datasets/output_ds3/coords.txt";
   
   CoordinateReader* r = new CoordinateReader(coordFile);
   r->updateCoordsFile();
   
   Localizer* l = new Localizer(r);
   OccupancyGrid* g = new OccupancyGrid();
+  SonarArchive* a = new SonarArchive();
   
   int* drone = new int[3];
   int* weson = new int[3];
@@ -32,12 +35,35 @@ int main(int argc, char **argv) {
   int* neson = new int[3];
   bool* range = new bool[4];
   float angle = 0.06;
+  double distX = 0.0;
+  double distY = 0.0;
+  double divX=1.0, divY=1.0;
+  int* prevLoc = new int[3];
+  int* sonarDists = new int[4];
+  double* rawPos = new double[5];
   
-  for (int i=0; i<3000; i++){
+  for (int i=0; i<4000; i++){
     //std::cout << "---- " << i << " ----" << std::endl;
     //std::cout << "    Position" << std::endl;
     l->triggerUpdate();
     l->getPosition(drone);
+    
+    distX += sqrt((drone[0]-prevLoc[0])*(drone[0]-prevLoc[0]));
+    if (distX/divX >= 100.0){
+      std::cout << "Blur X: " << distX << std::endl;
+      divX += 1.0;
+      //g->blurMapX(1);
+    }
+    
+    distY += sqrt((drone[1]-prevLoc[1])*(drone[1]-prevLoc[1]));
+    if (distY/divY >= 100.0){
+      std::cout << "Blur Y: " << distY << std::endl;
+      divY += 1.0;
+      //g->blurMapY(1);
+    }
+    
+    prevLoc[0] = drone[0];
+    prevLoc[1] = drone[1];
     
     //std::cout << "    Sonar" << std::endl;
     l->getWSonarPosition(weson);
@@ -64,12 +90,41 @@ int main(int argc, char **argv) {
     if (range[3]) g->closeSlice(drone[0], drone[1], eason[0], eason[1],angle);
     else g->openSlice(drone[0], drone[1], eason[0], eason[1],angle);
     
+    
+    l->getRawSonarDists(sonarDists);
+    l->getRawPosition(rawPos);
+    
+    if (distX > 9000.0) {
+      distX -= 900.0;
+      divX = 1.0;
+    }
+    
+    if (distY > 9000.0) {
+      distY -= 900.0;
+      divY = 1.0;
+    }
+    
+    /*
+    std::cout << drone[0] << ", " << drone[1] << std::endl; //*/
+    
+    double angle1 = atan2(nwson[1]-drone[1], nwson[0]-drone[0]);
+    double angle2 = atan2(neson[1]-drone[1], neson[0]-drone[0]);
+    a->addSonarScan(sonarDists, rawPos[0], rawPos[1], distX/10.0, distY/10.0, (angle1+angle2)/2.0, angle);
+    
     //std::cout << "    Next" << std::endl;
     r->updateCoordsFile();
   }
   
+  
+  
   std::cout << "Image" << std::endl;
   g->sendToImage(imgFile);
+  std::cout << "Done!" << std::endl;
+  
+  g = a->generateMapSortedNoBlur();
+  
+  std::cout << "Image" << std::endl;
+  g->sendToImage(imgFile2);
   std::cout << "Done!" << std::endl;
   return 0; //*/
   

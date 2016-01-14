@@ -21,6 +21,11 @@ OccupancyGrid::OccupancyGrid(){
   this->grid = new Grid();
 }
 
+//destructor
+OccupancyGrid::~OccupancyGrid(){
+  delete this->grid;
+}
+
 
 //Bresenham's Algorithm
 //make all squares in a node grid between (x1,y1) and (x2,y2) open
@@ -450,3 +455,14 @@ void OccupancyGrid::blurMapY(int uncertainty){
   }
 }
 
+
+
+//merge the given grid with this one
+void OccupancyGrid::mergeMaps(OccupancyGrid* newGrid){
+  for(int i=0; i<Grid::GRID_SIZE; i++){
+    for(int j=0; j<Grid::GRID_SIZE; j++){
+      char cur = newGrid->grid->getValue(i,j);
+      this->grid->changeValue(i,j,cur);
+    }
+  }
+}

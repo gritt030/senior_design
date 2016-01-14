@@ -28,6 +28,11 @@ class Localizer
     void getNESonarPosition(int* buffer);
     void getESonarPosition(int* buffer);
     void getSonarInRange(bool* buffer);
+    
+    //get raw data
+    void getRawPosition(double* buffer);
+    void getRawHeading(double* buffer);
+    void getRawSonarDists(int* buffer);
   
   private:
     CoordinateReader* reader;
