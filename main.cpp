@@ -11,21 +11,23 @@
 #include "navigation/virtualenvironment.h"
 #include "sonar/sonarscan.h"
 #include "sonar/sonararchive.h"
+#include "navigation/frontiermap.h"
 
 #include "pngwriter/png_writer.h"
 
 
 int main(int argc, char **argv) {
   
-  char* imgFile = "/home/owner/pics/large/2Estimate.png";
-  char* imgFile2 = "/home/owner/pics/large/2EstGlobalSort.png";
+  char* imgFile = "/home/owner/pics/large/frontier.png";
+  char* imgFile2 = "/home/owner/pics/large/map.png";
   char* coordFile = "/home/owner/workspace/Datasets/output_ds3/coordsAccurate.txt";
   
   CoordinateReader* r = new CoordinateReader(coordFile);
   r->updateCoordsFile();
   
   Localizer* l = new Localizer(r);
-  OccupancyGrid* g = new OccupancyGrid();
+  FrontierMap* f = new FrontierMap();
+  OccupancyGrid* g = new OccupancyGrid(f);
   SonarArchive* a = new SonarArchive();
   
   int* drone = new int[3];
@@ -42,7 +44,7 @@ int main(int argc, char **argv) {
   int* sonarDists = new int[4];
   double* rawPos = new double[5];
   
-  for (int i=0; i<4000; i++){
+  for (int i=0; i<500; i++){
     //std::cout << "---- " << i << " ----" << std::endl;
     //std::cout << "    Position" << std::endl;
     l->triggerUpdate();
@@ -52,14 +54,14 @@ int main(int argc, char **argv) {
     if (distX/divX >= 100.0){
       std::cout << "Blur X: " << distX << std::endl;
       divX += 1.0;
-      g->blurMapX(1);
+      //g->blurMapX(1);
     }
     
     distY += sqrt((drone[1]-prevLoc[1])*(drone[1]-prevLoc[1]));
     if (distY/divY >= 100.0){
       std::cout << "Blur Y: " << distY << std::endl;
       divY += 1.0;
-      g->blurMapY(1);
+      //g->blurMapY(1);
     }
     
     prevLoc[0] = drone[0];
@@ -116,7 +118,9 @@ int main(int argc, char **argv) {
   }
   
   std::cout << "Image" << std::endl;
-  g->sendToImage(imgFile);
+  //g->sendToImage(imgFile);
+  f->sendToImage(imgFile);
+  g->sendToImage(imgFile2);
   std::cout << "Done!" << std::endl;
   
   /*

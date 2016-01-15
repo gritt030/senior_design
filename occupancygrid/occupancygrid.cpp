@@ -15,10 +15,17 @@ const int OccupancyGrid::KERNELS[][NUM_KERNELS + 1] = {{13,1,0,0,0,0,0,0,0,0},  
 const int OccupancyGrid::KERNEL_SUMS[] = {15,83,166,252,333,416,496,575,654};
 
 
-//constructor
+//constructors
 OccupancyGrid::OccupancyGrid(){
   //create initial root node
   this->grid = new Grid();
+}
+
+OccupancyGrid::OccupancyGrid(FrontierMap* map){
+  //create initial root node
+  this->grid = new Grid();
+  //set frontier frontier map
+  this->fmap = map;
 }
 
 //destructor
@@ -39,10 +46,13 @@ bool OccupancyGrid::openLine(int relX1, int relY1, int relX2, int relY2){
   int deltaX = relX2 - relX1;   //distance we need to move
   int deltaY = relY2 - relY1;
   
+  if (fmap != nullptr) fmap->occupySquare(x, y);
+  
   //special cases are handled here
   //single point
   if ((deltaX == 0) && (deltaY == 0)) {
     grid->changeValue(BOUNDARY+x, BOUNDARY-y, OccupancyGrid::OPEN);
+    if (fmap != nullptr) fmap->openSquare(x, y);
     return true;
     
   //vertical line
@@ -52,9 +62,11 @@ bool OccupancyGrid::openLine(int relX1, int relY1, int relX2, int relY2){
     for (int i=0; i<abs(deltaY); i++) {
       if (grid->getValue(BOUNDARY+x, BOUNDARY-y) < OccupancyGrid::THRESHOLD) {grid->changeValue(BOUNDARY+x, BOUNDARY-y, OccupancyGrid::OPEN); return false;}
       grid->changeValue(BOUNDARY+x, BOUNDARY-y, OccupancyGrid::OPEN);
+      if (fmap != nullptr) fmap->openSquare(x, y);
       y += signY;
     }
     grid->changeValue(BOUNDARY+x, BOUNDARY-y, OccupancyGrid::OPEN);
+    if (fmap != nullptr) fmap->frontierSquare(x, y);
     return true;
     
   //horizontal line
@@ -64,9 +76,11 @@ bool OccupancyGrid::openLine(int relX1, int relY1, int relX2, int relY2){
     for (int i=0; i<abs(deltaX); i++) {
       if (grid->getValue(BOUNDARY+x, BOUNDARY-y) < OccupancyGrid::THRESHOLD) {grid->changeValue(BOUNDARY+x, BOUNDARY-y, OccupancyGrid::OPEN); return false;}
       grid->changeValue(BOUNDARY+x, BOUNDARY-y, OccupancyGrid::OPEN);
+      if (fmap != nullptr) fmap->openSquare(x, y);
       x += signX;
     }
     grid->changeValue(BOUNDARY+x, BOUNDARY-y, OccupancyGrid::OPEN);
+    if (fmap != nullptr) fmap->frontierSquare(x, y);
     return true;
   }
   
@@ -81,10 +95,12 @@ bool OccupancyGrid::openLine(int relX1, int relY1, int relX2, int relY2){
     for (int i=0; i<deltaX; i++) {
       if (grid->getValue(BOUNDARY+x, BOUNDARY-y) < OccupancyGrid::THRESHOLD) {grid->changeValue(BOUNDARY+x, BOUNDARY-y, OccupancyGrid::OPEN); return false;}
       grid->changeValue(BOUNDARY+x, BOUNDARY-y, OccupancyGrid::OPEN);
+      if (fmap != nullptr) fmap->openSquare(x, y);
       x += signX;
       y += signY;
     }
     grid->changeValue(BOUNDARY+x, BOUNDARY-y, OccupancyGrid::OPEN);
+    if (fmap != nullptr) fmap->frontierSquare(x, y);
     return true;
   }
   
@@ -97,6 +113,7 @@ bool OccupancyGrid::openLine(int relX1, int relY1, int relX2, int relY2){
       //fill in current grid square
       if (grid->getValue(BOUNDARY+x, BOUNDARY-y) < OccupancyGrid::THRESHOLD) {grid->changeValue(BOUNDARY+x, BOUNDARY-y, OccupancyGrid::OPEN); return false;}
       grid->changeValue(BOUNDARY+x, BOUNDARY-y, OccupancyGrid::OPEN);
+      if (fmap != nullptr) fmap->openSquare(x, y);
       
       //see if we need to move vertically
       cy += deltaY;
@@ -105,6 +122,7 @@ bool OccupancyGrid::openLine(int relX1, int relY1, int relX2, int relY2){
         cy -= deltaX;
         if (grid->getValue(BOUNDARY+x, BOUNDARY-y) < OccupancyGrid::THRESHOLD) {grid->changeValue(BOUNDARY+x, BOUNDARY-y, OccupancyGrid::OPEN); return false;}
         grid->changeValue(BOUNDARY+x, BOUNDARY-y, OccupancyGrid::OPEN);
+        if (fmap != nullptr) fmap->openSquare(x, y);
       }
       
       //move horizontally
@@ -117,6 +135,7 @@ bool OccupancyGrid::openLine(int relX1, int relY1, int relX2, int relY2){
       //fill in current grid square
       if (grid->getValue(BOUNDARY+x, BOUNDARY-y) < OccupancyGrid::THRESHOLD) {grid->changeValue(BOUNDARY+x, BOUNDARY-y, OccupancyGrid::OPEN); return false;}
       grid->changeValue(BOUNDARY+x, BOUNDARY-y, OccupancyGrid::OPEN);
+      if (fmap != nullptr) fmap->openSquare(x, y);
       
       //see if we need to move horizontally
       cx += deltaX;
@@ -125,6 +144,7 @@ bool OccupancyGrid::openLine(int relX1, int relY1, int relX2, int relY2){
         cx -= deltaY;
         if (grid->getValue(BOUNDARY+x, BOUNDARY-y) < OccupancyGrid::THRESHOLD) {grid->changeValue(BOUNDARY+x, BOUNDARY-y, OccupancyGrid::OPEN); return false;}
         grid->changeValue(BOUNDARY+x, BOUNDARY-y, OccupancyGrid::OPEN);
+        if (fmap != nullptr) fmap->openSquare(x, y);
       }
       
       //move vertically
@@ -134,6 +154,7 @@ bool OccupancyGrid::openLine(int relX1, int relY1, int relX2, int relY2){
   
   //set last point in line
   grid->changeValue(BOUNDARY+x, BOUNDARY-y, OccupancyGrid::OPEN);
+  if (fmap != nullptr) fmap->frontierSquare(x, y);
   return true;
 }
 
@@ -147,6 +168,7 @@ void OccupancyGrid::closeLine(int relX1, int relY1, int relX2, int relY2){
     //set final point of line to closed
     grid->changeValue(BOUNDARY+relX2, BOUNDARY-relY2, -OccupancyGrid::OPEN);
     grid->changeValue(BOUNDARY+relX2, BOUNDARY-relY2, OccupancyGrid::CLOSED);
+    if (fmap != nullptr) fmap->closeSquare(relX2, relY2);
   }
 }
 
@@ -159,6 +181,7 @@ void OccupancyGrid::frontierLine(int relX1, int relY1, int relX2, int relY2){
   if (this->openLine(relX1, relY1, relX2, relY2)) {
     //set final point in line to frontier
     grid->setValue(BOUNDARY+relX2, BOUNDARY-relY2, OccupancyGrid::FRONTIER);
+    if (fmap != nullptr) fmap->frontierSquare(relX2, relY2);
   }
 }
 

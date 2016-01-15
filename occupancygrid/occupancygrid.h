@@ -10,6 +10,7 @@
 
 #include "grid/grid.h"
 #include "./../pngwriter/png_writer.h"
+#include "./../navigation/frontiermap.h"
 
 class OccupancyGrid {
   public:
@@ -38,9 +39,11 @@ class OccupancyGrid {
     //TODO: Make private
     //other variables
     Grid *grid; //occupancy grid
+    FrontierMap* fmap = nullptr;
     
     //constructor/destructor
     OccupancyGrid();
+    OccupancyGrid(FrontierMap* map);
     ~OccupancyGrid();
     
     //functions for adding to map
