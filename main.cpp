@@ -17,9 +17,9 @@
 
 int main(int argc, char **argv) {
   
-  char* imgFile = "/home/owner/pics/large/blurLocal.png";
-  char* imgFile2 = "/home/owner/pics/large/blurGlobal.png";
-  char* coordFile = "/home/owner/workspace/Datasets/output_ds3/coords.txt";
+  char* imgFile = "/home/owner/pics/large/2Estimate.png";
+  char* imgFile2 = "/home/owner/pics/large/2EstGlobalSort.png";
+  char* coordFile = "/home/owner/workspace/Datasets/output_ds3/coordsAccurate.txt";
   
   CoordinateReader* r = new CoordinateReader(coordFile);
   r->updateCoordsFile();
@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
   int* nwson = new int[3];
   int* neson = new int[3];
   bool* range = new bool[4];
-  float angle = 0.06;
+  float angle = 0.13;
   double distX = 0.0;
   double distY = 0.0;
   double divX=1.0, divY=1.0;
@@ -52,14 +52,14 @@ int main(int argc, char **argv) {
     if (distX/divX >= 100.0){
       std::cout << "Blur X: " << distX << std::endl;
       divX += 1.0;
-      //g->blurMapX(1);
+      g->blurMapX(1);
     }
     
     distY += sqrt((drone[1]-prevLoc[1])*(drone[1]-prevLoc[1]));
     if (distY/divY >= 100.0){
       std::cout << "Blur Y: " << distY << std::endl;
       divY += 1.0;
-      //g->blurMapY(1);
+      g->blurMapY(1);
     }
     
     prevLoc[0] = drone[0];
@@ -94,13 +94,13 @@ int main(int argc, char **argv) {
     l->getRawSonarDists(sonarDists);
     l->getRawPosition(rawPos);
     
-    if (distX > 9000.0) {
-      distX -= 900.0;
+    if (distX > 6000.0) {
+      distX -= 600.0;
       divX = 1.0;
     }
     
-    if (distY > 9000.0) {
-      distY -= 900.0;
+    if (distY > 6000.0) {
+      distY -= 600.0;
       divY = 1.0;
     }
     
@@ -115,17 +115,16 @@ int main(int argc, char **argv) {
     r->updateCoordsFile();
   }
   
-  
-  
   std::cout << "Image" << std::endl;
   g->sendToImage(imgFile);
   std::cout << "Done!" << std::endl;
   
-  g = a->generateMapSortedNoBlur();
+  /*
+  g = a->generateMapReference();
   
   std::cout << "Image" << std::endl;
   g->sendToImage(imgFile2);
-  std::cout << "Done!" << std::endl;
+  std::cout << "Done!" << std::endl; //*/
   return 0; //*/
   
   /*

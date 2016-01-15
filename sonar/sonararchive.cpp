@@ -234,8 +234,7 @@ OccupancyGrid* SonarArchive::generateMapWalls(){
 
 OccupancyGrid* SonarArchive::generateMapSorted(){
   std::cout << "Sorting..." << std::endl;
-  SonarScan* head = this->sortScansX();
-  this->prevScan = head;
+  this->sortXsortYScans();
   
   OccupancyGrid* output = new OccupancyGrid();
   int* buf = new int[8];
@@ -245,6 +244,121 @@ OccupancyGrid* SonarArchive::generateMapSorted(){
   int curBlurY;
   int prevBlurX = 0;
   int prevBlurY = 0;
+  
+  /*
+  char* let = new char[5];
+  let[0] = '0';
+  let[1] = '1';
+  let[2] = '2';
+  let[3] = '3';
+  let[4] = '4'; //*/
+  
+  //don't need
+  int i=0;
+  
+  SonarScan* current = this->prevScan;
+  OccupancyGrid* localMap = new OccupancyGrid();
+  OccupancyGrid* tempMap = new OccupancyGrid();
+  
+  while (current != nullptr){
+    x = (int)(current->x/10.0);
+    y = (int)(current->y/10.0);
+    curBlurX = (int)(current->xErr/10.0);
+    curBlurY = (int)(current->yErr/10.0);
+    
+    if (curBlurY != prevBlurY){
+      tempMap->blurMapY(prevBlurY);
+      localMap->mergeMaps(tempMap);
+      
+      delete tempMap;
+      tempMap = new OccupancyGrid();
+      prevBlurY = curBlurY;
+      //don't need
+      std::cout << "Merging Y" << i++ << "..." << std::endl;
+    }
+    
+    if (curBlurX != prevBlurX){
+      tempMap->blurMapY(prevBlurY);
+      localMap->mergeMaps(tempMap);
+      delete tempMap;
+      tempMap = new OccupancyGrid();
+      
+      localMap->blurMapX(prevBlurX);
+      output->mergeMaps(localMap);
+      
+      /*
+      char* file = new char[128];
+      strcpy(file, "/home/owner/pics/large/blurLocal");
+      file[32] = let[(i/25)%5];
+      file[33] = let[(i/5)%5];
+      file[34] = let[i%5];
+      file[35] = '\0';
+      strcat(file, ".png");
+      localMap->sendToImage(file); //*/
+      
+      delete localMap;
+      localMap = new OccupancyGrid();
+      prevBlurX = curBlurX;
+      //don't need
+      std::cout << "Merging X" << i++ << "..." << curBlurX << std::endl;
+    }
+    
+    this->getSonarCoords(current, buf);
+    angle = this->getSonarAngles(current);
+    
+    if (current->w < SONAR_MAX) tempMap->closeSlice(x, y, x+buf[0], y+buf[1], (float)angle);
+    else tempMap->openSlice(x, y, x+buf[0], y+buf[1], (float)angle);
+    
+    if (current->nw < SONAR_MAX) tempMap->closeSlice(x, y, x+buf[2], y+buf[3], (float)angle);
+    else tempMap->openSlice(x, y, x+buf[2], y+buf[3], (float)angle);
+    
+    if (current->ne < SONAR_MAX) tempMap->closeSlice(x, y, x+buf[4], y+buf[5], (float)angle);
+    else tempMap->openSlice(x, y, x+buf[4], y+buf[5], (float)angle);
+    
+    if (current->e < SONAR_MAX) tempMap->closeSlice(x, y, x+buf[6], y+buf[7], (float)angle);
+    else tempMap->openSlice(x, y, x+buf[6], y+buf[7], (float)angle);
+
+    current = current->previous;
+  }
+  
+  tempMap->blurMapY(prevBlurY);
+  localMap->mergeMaps(tempMap);
+  delete tempMap;
+  
+  localMap->blurMapX(prevBlurX);
+  output->mergeMaps(localMap);
+  delete localMap;
+  
+  return output;
+}
+
+
+
+
+
+
+
+
+OccupancyGrid* SonarArchive::generateMapReference(){
+  this->sortScans();
+  
+  OccupancyGrid* output = new OccupancyGrid();
+  int* buf = new int[8];
+  int x, y;
+  double angle;
+  int curBlurX;
+  int curBlurY;
+  int prevBlurX = 0;
+  int prevBlurY = 0;
+  
+  /*
+  char* let = new char[5];
+  let[0] = '0';
+  let[1] = '1';
+  let[2] = '2';
+  let[3] = '3';
+  let[4] = '4';
+  */
   
   //don't need
   int i=0;
@@ -258,61 +372,26 @@ OccupancyGrid* SonarArchive::generateMapSorted(){
     curBlurX = (int)(current->xErr/10.0);
     curBlurY = (int)(current->yErr/10.0);
     
-    if ((curBlurX != prevBlurX)){// || (curBlurY != prevBlurY)){
+    if ((curBlurX != prevBlurX) || (curBlurY != prevBlurY)){
       localMap->blurMapX(prevBlurX);
-      //localMap->blurMapY(prevBlurY);
+      localMap->blurMapY(prevBlurY);
       output->mergeMaps(localMap);
+      
+      /*
+      char* file = new char[128];
+      strcpy(file, "/home/owner/pics/large/blurLocal");
+      file[32] = let[(i/25)%5];
+      file[33] = let[(i/5)%5];
+      file[34] = let[i%5];
+      file[35] = '\0';
+      strcat(file, ".png");
+      localMap->sendToImage(file);
+      */
+      
       
       delete localMap;
       localMap = new OccupancyGrid();
       prevBlurX = curBlurX;
-      //prevBlurY = curBlurY;
-      //don't need
-      std::cout << "Merging " << i++ << "..." << std::endl;
-    }
-    
-    this->getSonarCoords(current, buf);
-    angle = this->getSonarAngles(current);
-    
-    if (current->w < SONAR_MAX) localMap->closeSlice(x, y, x+buf[0], y+buf[1], (float)angle);
-    else localMap->openSlice(x, y, x+buf[0], y+buf[1], (float)angle);
-    
-    if (current->nw < SONAR_MAX) localMap->closeSlice(x, y, x+buf[2], y+buf[3], (float)angle);
-    else localMap->openSlice(x, y, x+buf[2], y+buf[3], (float)angle);
-    
-    if (current->ne < SONAR_MAX) localMap->closeSlice(x, y, x+buf[4], y+buf[5], (float)angle);
-    else localMap->openSlice(x, y, x+buf[4], y+buf[5], (float)angle);
-    
-    if (current->e < SONAR_MAX) localMap->closeSlice(x, y, x+buf[6], y+buf[7], (float)angle);
-    else localMap->openSlice(x, y, x+buf[6], y+buf[7], (float)angle);
-
-    current = current->previous;
-  }
-  
-  output->mergeMaps(localMap);
-  delete localMap;
-  
-  
-  head = this->sortScansY();
-  this->prevScan = head;
-  
-  current = this->prevScan;
-  localMap = new OccupancyGrid();
-  
-  while (current != nullptr){
-    x = (int)(current->x/10.0);
-    y = (int)(current->y/10.0);
-    curBlurX = (int)(current->xErr/10.0);
-    curBlurY = (int)(current->yErr/10.0);
-    
-    if (/*(curBlurX != prevBlurX)) ||*/ (curBlurY != prevBlurY)){
-      //localMap->blurMapX(prevBlurX);
-      localMap->blurMapY(prevBlurY);
-      output->mergeMaps(localMap);
-      
-      delete localMap;
-      localMap = new OccupancyGrid();
-      //prevBlurX = curBlurX;
       prevBlurY = curBlurY;
       //don't need
       std::cout << "Merging " << i++ << "..." << std::endl;
@@ -321,33 +400,38 @@ OccupancyGrid* SonarArchive::generateMapSorted(){
     this->getSonarCoords(current, buf);
     angle = this->getSonarAngles(current);
     
-    if (current->w < SONAR_MAX) localMap->closeSlice(x, y, x+buf[0], y+buf[1], (float)angle);
-    else localMap->openSlice(x, y, x+buf[0], y+buf[1], (float)angle);
+    if (current->w < SONAR_MAX) localMap->closeSliceAccording(output, x, y, x+buf[0], y+buf[1], (float)angle);
+    else localMap->openSliceAccording(output, x, y, x+buf[0], y+buf[1], (float)angle);
     
-    if (current->nw < SONAR_MAX) localMap->closeSlice(x, y, x+buf[2], y+buf[3], (float)angle);
-    else localMap->openSlice(x, y, x+buf[2], y+buf[3], (float)angle);
+    if (current->nw < SONAR_MAX) localMap->closeSliceAccording(output, x, y, x+buf[2], y+buf[3], (float)angle);
+    else localMap->openSliceAccording(output, x, y, x+buf[2], y+buf[3], (float)angle);
     
-    if (current->ne < SONAR_MAX) localMap->closeSlice(x, y, x+buf[4], y+buf[5], (float)angle);
-    else localMap->openSlice(x, y, x+buf[4], y+buf[5], (float)angle);
+    if (current->ne < SONAR_MAX) localMap->closeSliceAccording(output, x, y, x+buf[4], y+buf[5], (float)angle);
+    else localMap->openSliceAccording(output, x, y, x+buf[4], y+buf[5], (float)angle);
     
-    if (current->e < SONAR_MAX) localMap->closeSlice(x, y, x+buf[6], y+buf[7], (float)angle);
-    else localMap->openSlice(x, y, x+buf[6], y+buf[7], (float)angle);
+    if (current->e < SONAR_MAX) localMap->closeSliceAccording(output, x, y, x+buf[6], y+buf[7], (float)angle);
+    else localMap->openSliceAccording(output, x, y, x+buf[6], y+buf[7], (float)angle);
 
     current = current->previous;
   }
   
   output->mergeMaps(localMap);
   delete localMap;
-  
-  
   return output;
 }
 
 
 
+
+
+
+
+
+
+
+
 OccupancyGrid* SonarArchive::generateMapSortedNoBlur(){
-  SonarScan* head = this->sortScans();
-  this->prevScan = head;
+  this->sortScans();
   
   OccupancyGrid* output = new OccupancyGrid();
   int* buf = new int[8];
@@ -429,7 +513,7 @@ double SonarArchive::getSonarAngles(SonarScan* scan){
 
 
 
-SonarScan* SonarArchive::sortScans(){
+void SonarArchive::sortScans(){
   SonarScan* first = this->prevScan;
   this->prevScan = first->previous;
   first->previous = nullptr;
@@ -477,10 +561,10 @@ SonarScan* SonarArchive::sortScans(){
     c = this->prevScan;
   }
   
-  return first;
+  this->prevScan = first;
 }
 
-SonarScan* SonarArchive::sortScansX(){
+void SonarArchive::sortScansX(){
   SonarScan* first = this->prevScan;
   this->prevScan = first->previous;
   first->previous = nullptr;
@@ -524,10 +608,10 @@ SonarScan* SonarArchive::sortScansX(){
     c = this->prevScan;
   }
   
-  return first;
+  this->prevScan = first;
 }
 
-SonarScan* SonarArchive::sortScansY(){
+void SonarArchive::sortScansY(){
   SonarScan* first = this->prevScan;
   this->prevScan = first->previous;
   first->previous = nullptr;
@@ -571,6 +655,110 @@ SonarScan* SonarArchive::sortScansY(){
     c = this->prevScan;
   }
   
-  return first;
+  this->prevScan = first;
 }
+
+void SonarArchive::sortXsortYScans(){
+  SonarScan* mainHead = nullptr, *mainTail;
+  this->sortScansX();
+  
+  SonarScan* curChain = this->prevScan;
+  
+  while (curChain != nullptr) {
+    int curBlur = (int)(curChain->xErr/10.0);
+    
+    SonarScan* curTail = curChain;
+    SonarScan* cur = curChain->previous;
+    while (cur != nullptr) {
+      if ((int)(cur->xErr/10.0) != curBlur){
+        break;
+      }
+      curTail = cur;
+      cur = cur->previous;
+    }
+
+    this->prevScan = cur;
+    curTail->previous = nullptr;
+    
+    SonarScan* newChain = curChain;
+    curChain = newChain->previous;
+    newChain->previous = nullptr;
+    
+    SonarScan* c = curChain;
+    
+    while (c != nullptr){
+      curChain = c->previous;
+      c->previous = nullptr;
+      
+      double curErr = c->yErr;
+      
+      SonarScan* p = nullptr;
+      SonarScan* s = newChain;
+      
+      while (s != nullptr){
+        double newErr = s->yErr;
+        
+        if (curErr < newErr){
+          if (p == nullptr){
+            c->previous = newChain;
+            newChain = c;
+            break;
+          } else {
+            c->previous = s;
+            p->previous = c;
+            break;
+          }
+        } else {
+          p = s;
+          s = s->previous;
+        }
+      }
+      
+      if (s==nullptr) {
+        p->previous = c;
+      }
+      
+      c = curChain;
+    }
+    
+    if (mainHead == nullptr){
+      mainHead = newChain;
+    } else {
+      mainTail->previous = newChain;
+    }
+    
+    while (newChain->previous != nullptr){
+      newChain = newChain->previous;
+    }
+    
+    mainTail = newChain;
+    curChain = this->prevScan;
+  }
+  
+  this->prevScan = mainHead;
+}
+
+
+
+
+void SonarArchive::printScans() {
+  SonarScan* cur = this->prevScan;
+  
+  while (cur != nullptr) {
+    std::cout << cur->xErr << ", " << cur->yErr << std::endl;
+    cur = cur->previous;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
 

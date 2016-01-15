@@ -23,6 +23,13 @@ public:
   OccupancyGrid* generateMapWalls();
   OccupancyGrid* generateMapSorted();
   OccupancyGrid* generateMapSortedNoBlur();
+  OccupancyGrid* generateMapReference();
+  
+  void sortScans();
+  void sortScansX();
+  void sortScansY();
+  void sortXsortYScans();
+  void printScans();
   
 private:
   SonarScan* prevScan = nullptr;
@@ -32,9 +39,9 @@ private:
   void getSonarCoords(SonarScan* scan, int* buffer);
   double getSonarAngles(SonarScan* scan);
   
-  SonarScan* sortScans();
-  SonarScan* sortScansX();
-  SonarScan* sortScansY();
+  
+  
+  
   
 };
 

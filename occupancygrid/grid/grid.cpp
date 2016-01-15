@@ -37,11 +37,11 @@ void Grid::changeValue(int x, int y, char value){
   if (value > 0) {
     if (current <= (Grid::MAX_VALUE - value)) {
       this->map[index] = value + current;
-    }
+    } else this->map[index] = Grid::MAX_VALUE;
   } else {
     if (current >= (-Grid::MAX_VALUE-value)) {
       this->map[index] = value + current;
-    }
+    } else this->map[index] = -Grid::MAX_VALUE;
   }
 }
 

@@ -16,9 +16,12 @@ class OccupancyGrid {
     //occupancy variables
     static const char UNKNOWN = 0;
     static const char OPEN = 1;
-    static const char CLOSED = -7;
+    static const char CLOSED = -20;
     static const char FRONTIER = -128;
     static const char THRESHOLD = 0;
+    
+    //used to correct coordinates when setting values in grid
+    static const int BOUNDARY = Grid::GRID_SIZE / 2;
     
     //color in png output TODO: see if these are actually used anywhere
     static const int COLOR_UNKN = 0x888888ff;   //gray
@@ -55,6 +58,13 @@ class OccupancyGrid {
     
     //combine two occupancy maps
     void mergeMaps(OccupancyGrid* newGrid);
+    
+    //draw lines in map based on lines in ref map
+    bool openLineAccording(OccupancyGrid* ref, int relX1, int relY1, int relX2, int relY2);
+    void closeLineAccording(OccupancyGrid* ref, int relX1, int relY1, int relX2, int relY2);
+    void openSliceAccording(OccupancyGrid* ref, int relX1, int relY1, int relX2, int relY2, float angle);
+    void closeSliceAccording(OccupancyGrid* ref, int relX1, int relY1, int relX2, int relY2, float angle);
+
     
     //output map as image
     void sendToImage(char* filename);
