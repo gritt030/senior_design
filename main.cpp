@@ -12,22 +12,33 @@
 #include "sonar/sonarscan.h"
 #include "sonar/sonararchive.h"
 #include "navigation/frontiermap.h"
+#include "navigation/navigationmap/navigationmap.h"
 
 #include "pngwriter/png_writer.h"
 
 
 int main(int argc, char **argv) {
   
-  char* imgFile = "/home/owner/pics/large/frontier.png";
-  char* imgFile2 = "/home/owner/pics/large/map.png";
-  char* coordFile = "/home/owner/workspace/Datasets/output_ds3/coordsAccurate.txt";
+  char* occImg = "/home/owner/pics/large/occupancy.png";
+  char* sorImg = "/home/owner/pics/large/refined.png";
+  char* rawImg = "/home/owner/pics/large/rawnav.png";
+  char* navImg = "/home/owner/pics/large/navigate.png";
+  char* coordFile = "/home/owner/workspace/Datasets/coords/coords_crosstalk1.txt";
+  
+  //VirtualEnvironment* v = new VirtualEnvironment();
+  //v->setPosition(100,2500);
+  //v->setRotation(0.0f);
+  //int* buf1 = new int[15];
+  //v->getCurrentCoordinates(buf1);
   
   CoordinateReader* r = new CoordinateReader(coordFile);
   r->updateCoordsFile();
+  //r->updateCoordsVirtual(buf1);
   
   Localizer* l = new Localizer(r);
   FrontierMap* f = new FrontierMap();
-  OccupancyGrid* g = new OccupancyGrid(f);
+  NavigationMap* g = new NavigationMap();
+  //OccupancyGrid* g = new OccupancyGrid(f);
   SonarArchive* a = new SonarArchive();
   
   int* drone = new int[3];
@@ -36,36 +47,22 @@ int main(int argc, char **argv) {
   int* nwson = new int[3];
   int* neson = new int[3];
   bool* range = new bool[4];
-  float angle = 0.13;
+  float angle = 0.26;
+  double heading = 0.0;
   double distX = 0.0;
   double distY = 0.0;
+  double distA = 0.0;
   double divX=1.0, divY=1.0;
-  int* prevLoc = new int[3];
+  double* prevLoc = new double[5];
+  double prevAngle = 0.0;
   int* sonarDists = new int[4];
   double* rawPos = new double[5];
   
-  for (int i=0; i<500; i++){
+  for (int i=0; i<4000; i++){
     //std::cout << "---- " << i << " ----" << std::endl;
     //std::cout << "    Position" << std::endl;
     l->triggerUpdate();
     l->getPosition(drone);
-    
-    distX += sqrt((drone[0]-prevLoc[0])*(drone[0]-prevLoc[0]));
-    if (distX/divX >= 100.0){
-      std::cout << "Blur X: " << distX << std::endl;
-      divX += 1.0;
-      //g->blurMapX(1);
-    }
-    
-    distY += sqrt((drone[1]-prevLoc[1])*(drone[1]-prevLoc[1]));
-    if (distY/divY >= 100.0){
-      std::cout << "Blur Y: " << distY << std::endl;
-      divY += 1.0;
-      //g->blurMapY(1);
-    }
-    
-    prevLoc[0] = drone[0];
-    prevLoc[1] = drone[1];
     
     //std::cout << "    Sonar" << std::endl;
     l->getWSonarPosition(weson);
@@ -80,47 +77,68 @@ int main(int argc, char **argv) {
     //std::cout << "    Son: " << weson[0] << ", " << weson[1] << std::endl;
     //std::cout << "    Line" << std::endl;
     
-    if (range[0]) g->closeSlice(drone[0], drone[1], weson[0], weson[1],angle);
-    else g->openSlice(drone[0], drone[1], weson[0], weson[1],angle);
+    if (range[0]) g->closeSliceSide(drone[0], drone[1], weson[0], weson[1],angle);
+    else g->openSliceSide(drone[0], drone[1], weson[0], weson[1],angle);
     
-    if (range[1]) g->closeSlice(drone[0], drone[1], nwson[0], nwson[1],angle);
-    else g->openSlice(drone[0], drone[1], nwson[0], nwson[1],angle);
+    if (range[1]) g->closeSliceFront(drone[0], drone[1], nwson[0], nwson[1],angle);
+    else g->openSliceFront(drone[0], drone[1], nwson[0], nwson[1],angle);
     
-    if (range[2]) g->closeSlice(drone[0], drone[1], neson[0], neson[1],angle);
-    else g->openSlice(drone[0], drone[1], neson[0], neson[1],angle);
+    if (range[2]) g->closeSliceFront(drone[0], drone[1], neson[0], neson[1],angle);
+    else g->openSliceFront(drone[0], drone[1], neson[0], neson[1],angle);
     
-    if (range[3]) g->closeSlice(drone[0], drone[1], eason[0], eason[1],angle);
-    else g->openSlice(drone[0], drone[1], eason[0], eason[1],angle);
+    if (range[3]) g->closeSliceSide(drone[0], drone[1], eason[0], eason[1],angle);
+    else g->openSliceSide(drone[0], drone[1], eason[0], eason[1],angle);
     
     
     l->getRawSonarDists(sonarDists);
     l->getRawPosition(rawPos);
+    distX += sqrt((rawPos[0]-prevLoc[0])*(rawPos[0]-prevLoc[0]));
+    distY += sqrt((rawPos[1]-prevLoc[1])*(rawPos[1]-prevLoc[1]));
+    prevLoc[0] = rawPos[0];
+    prevLoc[1] = rawPos[1];
     
-    if (distX > 6000.0) {
-      distX -= 600.0;
-      divX = 1.0;
-    }
-    
-    if (distY > 6000.0) {
-      distY -= 600.0;
-      divY = 1.0;
-    }
+//     if (distX > 6000.0) {
+//       distX -= 600.0;
+//       divX = 1.0;
+//     }
+//     
+//     if (distY > 6000.0) {
+//       distY -= 600.0;
+//       divY = 1.0;
+//     }
     
     /*
     std::cout << drone[0] << ", " << drone[1] << std::endl; //*/
     
     double angle1 = atan2(nwson[1]-drone[1], nwson[0]-drone[0]);
     double angle2 = atan2(neson[1]-drone[1], neson[0]-drone[0]);
-    a->addSonarScan(sonarDists, rawPos[0], rawPos[1], distX/10.0, distY/10.0, (angle1+angle2)/2.0, angle);
+    heading = (angle1 + angle2)/2.0;
+    if (prevAngle == 0.0) prevAngle = heading;
+    distA += sqrt((heading-prevAngle)*(heading-prevAngle));
+    angle = distA/1000.0 + 0.26;
+    prevAngle = heading;
+            
+    a->addSonarScan(sonarDists, rawPos[0], rawPos[1], distX/100.0, distY/100.0, heading, angle);
     
     //std::cout << "    Next" << std::endl;
     r->updateCoordsFile();
+    //v->changePosition(10,0);
+    //v->getCurrentCoordinates(buf1);
+    //r->updateCoordsVirtual(buf1);
   }
   
+  OccupancyGrid* o1 = a->generateMapNoBlur();
+  OccupancyGrid* o2 = a->generateMapReference();
+
   std::cout << "Image" << std::endl;
   //g->sendToImage(imgFile);
-  f->sendToImage(imgFile);
-  g->sendToImage(imgFile2);
+  //f->sendToImage(imgFile);
+  o1->sendToImage(occImg);
+  o2->sendToImage(sorImg);
+  g->sendToImage(rawImg);
+  g->cleanFrontier();
+  g->sendToImage(navImg);
+  //g->sendFrontierToImage(imgFile);
   std::cout << "Done!" << std::endl;
   
   /*
@@ -199,11 +217,6 @@ int main(int argc, char **argv) {
     g->closeNodeLine(0,0,0,0, g->root);
   } //*/
   
-  std::cout << "Creating image..." << std::endl;
-  
-  g->sendToImage(imgFile);
-  
-  std::cout << "Done!" << std::endl;
   return 0; //*/
   
 }

@@ -7,12 +7,12 @@
 VirtualEnvironment::VirtualEnvironment() {
   this->map = new char[mapSize * mapSize]();
   
-  loadHallway(10,10, 990,110);
-  loadHallway(10,10, 110,990);
-  loadHallway(890,10, 990,990);
-  loadHallway(10,890, 990,990);
-  loadHallway(10,400, 990,600);
-  loadHallway(400,10, 600,990);
+  loadHallway(10,10, 4990,210);
+  loadHallway(10,10, 210,4990);
+  loadHallway(4790,10, 4990,4990);
+  loadHallway(10,4790, 4990,4990);
+  loadHallway(10,2400, 4990,2600);
+  loadHallway(2400,10, 2600,4990);
 }
 
 
@@ -202,7 +202,7 @@ int VirtualEnvironment::getEaSonar() {
     endX += dX;
     endY += dY;
   }
-  
+    
   double deltaX = endX - startX;
   double deltaY = endY - startY;
   int dist = (int)round(sqrt(deltaX*deltaX + deltaY*deltaY));
@@ -212,7 +212,7 @@ int VirtualEnvironment::getEaSonar() {
 
 
 void VirtualEnvironment::getCurrentCoordinates(int* buffer){
-  int* buf = new int[8];
+  int* buf = new int[8]; 
   getSonarCoords(buf);
   
   buffer[0] = X - mapSize/2;

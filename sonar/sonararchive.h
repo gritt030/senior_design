@@ -15,6 +15,7 @@ public:
   //percent of angles turned that error is
   double HEADING_ERROR = 0.01;
   
+  static const int SCALE = 10;  //number of cm per grid square
   static const int SONAR_MAX = 400;    //maximum range on sonar (not based on scale)
   
   SonarArchive();
@@ -23,6 +24,7 @@ public:
   OccupancyGrid* generateMapWalls();
   OccupancyGrid* generateMapSorted();
   OccupancyGrid* generateMapSortedNoBlur();
+  OccupancyGrid* generateMapNoBlur();
   OccupancyGrid* generateMapReference();
   
   void sortScans();
@@ -38,11 +40,6 @@ private:
   void propagateHeadError();
   void getSonarCoords(SonarScan* scan, int* buffer);
   double getSonarAngles(SonarScan* scan);
-  
-  
-  
-  
-  
 };
 
 #endif // SONARARCHIVE_H

@@ -25,7 +25,7 @@ class VirtualEnvironment
     
   private:
     char* map;
-    int mapSize = 1000;
+    int mapSize = 5000;
     int X, Y;
     float Angle, Degrees;
     

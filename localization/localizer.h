@@ -7,7 +7,7 @@
 class Localizer
 {
   public:
-    static const int SCALE = 10;        //cm per grid square
+    static const int SCALE = 100;        //cm per grid square
     static const int SONAR_MAX = 400;    //maximum range on sonar (not based on scale)
     
     //constructor

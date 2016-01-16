@@ -260,7 +260,7 @@ void OccupancyGrid::openSlice(int relX1, int relY1, int relX2, int relY2, float 
   
   //amount we need to change x and y by to get ends of line
   int changeX = (int)round(sqrt((float)(dist*dist) / (1.0+slope*slope)));
-  int changeY = (int)round((slope*(float)changeX));
+  int changeY = (int)round(sqrt((float)(dist*dist) / (1.0+1.0/(slope*slope))) * (slope/fabs(slope)));
   
   //starting and ending points of line
   int startX = relX2 - changeX;
@@ -347,7 +347,7 @@ void OccupancyGrid::closeSlice(int relX1, int relY1, int relX2, int relY2, float
   
   //amount we need to change x and y by to get ends of line
   int changeX = (int)round(sqrt((float)(dist*dist) / (1.0+slope*slope)));
-  int changeY = (int)round((slope*(float)changeX));
+  int changeY = (int)round(sqrt((float)(dist*dist) / (1.0+1.0/(slope*slope))) * (slope/fabs(slope)));
   
   //starting and ending points of line
   int startX = relX2 - changeX;
