@@ -119,6 +119,119 @@ void NavigationMap::openLine(int relX1, int relY1, int relX2, int relY2){
 }
 
 
+
+void NavigationMap::openFrontierLine(int relX1, int relY1, int relX2, int relY2){
+  //information on how we need to move
+  int x = relX1;                //position variables
+  int y = relY1;
+  int signX, signY;             //sign of movement direction
+  int deltaX = relX2 - relX1;   //distance we need to move
+  int deltaY = relY2 - relY1;
+  
+  //special cases are handled here
+  //single point
+  if ((deltaX == 0) && (deltaY == 0)) {
+    grid->changeValue(x, y, OPEN);
+    frontiers->changeValue(x, y, FRONTIER);
+    return;
+    
+  //vertical line
+  } else if (deltaX == 0) {
+    signY = deltaY/abs(deltaY);
+    
+    for (int i=0; i<abs(deltaY); i++) {
+      grid->changeValue(x, y, OPEN);
+      frontiers->changeValue(x, y, FRONTIER);
+      y += signY;
+    }
+    grid->changeValue(x, y, OPEN);
+    frontiers->changeValue(x, y, FRONTIER);
+    return;
+    
+  //horizontal line
+  } else if (deltaY == 0) {
+    int signX = deltaX/abs(deltaX);
+    
+    for (int i=0; i<abs(deltaX); i++) {
+      grid->changeValue(x, y, OPEN);
+      frontiers->changeValue(x, y, FRONTIER);
+      x += signX;
+    }
+    grid->changeValue(x, y, OPEN);
+    frontiers->changeValue(x, y, FRONTIER);
+    return;
+  }
+  
+  //switch to absolute value coordinates to make things easier
+  signX = deltaX/abs(deltaX);
+  signY = deltaY/abs(deltaY);
+  deltaX = abs(deltaX);
+  deltaY = abs(deltaY);
+  
+  //SPECIAL CASE: diagonal line
+  if (deltaY == deltaX) {
+    for (int i=0; i<deltaX; i++) {
+      grid->changeValue(x, y, OPEN);
+      frontiers->changeValue(x, y, FRONTIER);
+      x += signX;
+      y += signY;
+    }
+    grid->changeValue(x, y, OPEN);
+    frontiers->changeValue(x, y, FRONTIER);
+    return;
+  }
+  
+  //change in x and y so far
+  int cx=deltaY>>1, cy=deltaX>>1;
+  
+  //line more horizontal than vertical
+  if (deltaX > deltaY) {
+    for (int i=0; i<deltaX; i++) {
+      //fill in current grid square
+      grid->changeValue(x, y, OPEN);
+      frontiers->changeValue(x, y, FRONTIER);
+      
+      //see if we need to move vertically
+      cy += deltaY;
+      if (cy > deltaX) {
+        y += signY;
+        cy -= deltaX;
+        grid->changeValue(x, y, OPEN);
+        frontiers->changeValue(x, y, FRONTIER);
+      }
+      
+      //move horizontally
+      x += signX;
+    }
+    
+  //line more vertical than horizontal
+  } else {
+    for (int i=0; i<deltaY; i++) {
+      //fill in current grid square
+      grid->changeValue(x, y, OPEN);
+      frontiers->changeValue(x, y, FRONTIER);
+      
+      //see if we need to move horizontally
+      cx += deltaX;
+      if (cx > deltaY) {
+        x += signX;
+        cx -= deltaY;
+        grid->changeValue(x, y, OPEN);
+        frontiers->changeValue(x, y, FRONTIER);
+      }
+      
+      //move vertically
+      y += signY;
+    }
+  }
+  
+  //set last point in line
+  grid->changeValue(x, y, OPEN);
+  frontiers->changeValue(x, y, FRONTIER);
+  return;
+}
+
+
 //make all squares in a node grid between (x1,y1) and (x2,y2) open
 // -GRID_SIZE/2 <= x1, x2, y1, y2 <= GRID_SIZE/2
 // (0,0) is the central square in the grid
@@ -145,6 +258,16 @@ void NavigationMap::openLineFront(int relX1, int relY1, int relX2, int relY2){
 void NavigationMap::closeLineSide(int relX1, int relY1, int relX2, int relY2){
   //open line in grid
   this->openLine(relX1, relY1, relX2, relY2);
+  //set final point of line to closed
+  grid->changeValue(relX2, relY2, -OPEN);
+  grid->changeValue(relX2, relY2, CLOSED);
+  frontiers->changeValue(relX2, relY2, UNFRONTIER);
+}
+
+
+void NavigationMap::closeFrontierLine(int relX1, int relY1, int relX2, int relY2){
+  //open line in grid
+  this->openFrontierLine(relX1, relY1, relX2, relY2);
   //set final point of line to closed
   grid->changeValue(relX2, relY2, -OPEN);
   grid->changeValue(relX2, relY2, CLOSED);
@@ -286,16 +409,20 @@ void NavigationMap::openSliceSide(int relX1, int relY1, int relX2, int relY2, fl
     
   //vertical line passed in
   } else if (deltaX == 0) {
-    for (int i=-dist; i<=dist; i++) {
+    this->openFrontierLine(relX1, relY1, relX2-dist, relY2);
+    for (int i=(1-dist); i<dist; i++) {
       this->openLineSide(relX1, relY1, relX2+i, relY2);
     }
+    this->openFrontierLine(relX1, relY1, relX2+dist, relY2);
     return;
     
   //horizontal line passed in
   } else if (deltaY == 0) {
-    for (int i=-dist; i<=dist; i++) {
+    this->openFrontierLine(relX1, relY1, relX2, relY2-dist);
+    for (int i=(1-dist); i<dist; i++) {
       this->openLineSide(relX1, relY1, relX2, relY2+i);
     }
+    this->openFrontierLine(relX1, relY1, relX2, relY2+dist);
     return;
   }
   
@@ -337,8 +464,9 @@ void NavigationMap::openSliceSide(int relX1, int relY1, int relX2, int relY2, fl
   //keep track of pixel transitions
   int cx = block>>1;
   int cy = block>>1;
-    
-  this->openLineSide(relX1, relY1, x, y);
+  
+  //originally openLineSide if this breaks
+  this->openFrontierLine(relX1, relY1, x, y);
   
   do {
     cx += deltaY;
@@ -354,7 +482,22 @@ void NavigationMap::openSliceSide(int relX1, int relY1, int relX2, int relY2, fl
     }
     
     this->openLineSide(relX1, relY1, x, y);
-  } while (loop-- > 0);
+  } while (loop-- > 1); //originally 0
+  
+  //originally not here (rest of function)
+  cx += deltaY;
+  cy += deltaX;
+  if (cx > block) {
+    x++;
+    cx -= block;
+  }
+  
+  if (cy > block) {
+    y += ySign;
+    cy -= block;
+  }
+  
+  this->openFrontierLine(relX1, relY1, x, y);
 }
 
 
@@ -458,16 +601,20 @@ void NavigationMap::closeSliceSide(int relX1, int relY1, int relX2, int relY2, f
     
   //vertical line passed in
   } else if (deltaX == 0) {
-    for (int i=-dist; i<=dist; i++) {
+    this->closeFrontierLine(relX1, relY1, relX2-dist, relY2);
+    for (int i=(1-dist); i<dist; i++) {
       this->closeLineSide(relX1, relY1, relX2+i, relY2);
     }
+    this->closeFrontierLine(relX1, relY1, relX2+dist, relY2);
     return;
     
   //horizontal line passed in
   } else if (deltaY == 0) {
-    for (int i=-dist; i<=dist; i++) {
+    this->closeFrontierLine(relX1, relY1, relX2, relY2-dist);
+    for (int i=(1-dist); i<dist; i++) {
       this->closeLineSide(relX1, relY1, relX2, relY2+i);
     }
+    this->closeFrontierLine(relX1, relY1, relX2, relY2+dist);
     return;
   }
   
@@ -509,8 +656,9 @@ void NavigationMap::closeSliceSide(int relX1, int relY1, int relX2, int relY2, f
   //keep track of pixel transitions
   int cx = block>>1;
   int cy = block>>1;
-    
-  this->closeLineSide(relX1, relY1, x, y);
+  
+  //originally openLineSide if this breaks
+  this->closeFrontierLine(relX1, relY1, x, y);
   
   do {
     cx += deltaY;
@@ -526,7 +674,22 @@ void NavigationMap::closeSliceSide(int relX1, int relY1, int relX2, int relY2, f
     }
     
     this->closeLineSide(relX1, relY1, x, y);
-  } while (loop-- > 0);
+  } while (loop-- > 1); //originally 0
+  
+  //originally not here (rest of function)
+  cx += deltaY;
+  cy += deltaX;
+  if (cx > block) {
+    x++;
+    cx -= block;
+  }
+  
+  if (cy > block) {
+    y += ySign;
+    cy -= block;
+  }
+  
+  this->closeFrontierLine(relX1, relY1, x, y);
 }
 
 
@@ -625,7 +788,7 @@ void NavigationMap::cleanFrontier(){
   //clear frontiers that are surrounded by closed cells
   for (int i=-OpenGrid::GRID_BOUNDARY; i<=OpenGrid::GRID_BOUNDARY; i++){
     for (int j=-OpenGrid::GRID_BOUNDARY; j<=OpenGrid::GRID_BOUNDARY; j++) {
-      if (frontiers->getValue(i,j) != 0){
+      if (frontiers->getValue(i,j) > THRESHOLD){
         int emptyMap = 0;
         if (grid->getValue(i+1,j) == 0) emptyMap++;
         if (grid->getValue(i-1,j) == 0) emptyMap++;
@@ -645,7 +808,7 @@ void NavigationMap::cleanFrontier(){
   //clear frontiers that are alone
   for (int i=-OpenGrid::GRID_BOUNDARY; i<=OpenGrid::GRID_BOUNDARY; i++){
     for (int j=-OpenGrid::GRID_BOUNDARY; j<=OpenGrid::GRID_BOUNDARY; j++) {
-      if (frontiers->getValue(i,j) != 0){
+      if (frontiers->getValue(i,j) > THRESHOLD){
         int fullFron = 0;
         if (frontiers->getValue(i+1,j) != 0) fullFron++;
         if (frontiers->getValue(i-1,j) != 0) fullFron++;

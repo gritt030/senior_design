@@ -18,9 +18,9 @@ class NavigationMap
     //occupancy variables
     static const short OPEN = 10;
     static const short CLOSED = -10;
-    static const char FRONTIER = 10;
-    static const char UNFRONTIER = -10;
-    static const short THRESHOLD = 100;
+    static const char FRONTIER = 5;
+    static const char UNFRONTIER = -5;
+    static const char THRESHOLD = 0;
     
     //TODO: Make private
     //other variables
@@ -51,6 +51,8 @@ class NavigationMap
     
     //functions for adding to map
     void openLine(int relX1, int relY1, int relX2, int relY2);
+    void openFrontierLine(int relX1, int relY1, int relX2, int relY2);
+    void closeFrontierLine(int relX1, int relY1, int relX2, int relY2);
     void openLineSide(int relX1, int relY1, int relX2, int relY2);
     void closeLineSide(int relX1, int relY1, int relX2, int relY2);
     void openLineFront(int relX1, int relY1, int relX2, int relY2);

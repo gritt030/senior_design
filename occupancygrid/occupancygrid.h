@@ -10,14 +10,13 @@
 
 #include "grid/grid.h"
 #include "./../pngwriter/png_writer.h"
-#include "./../navigation/frontiermap.h"
 
 class OccupancyGrid {
   public:
     //occupancy variables
     static const char UNKNOWN = 0;
     static const char OPEN = 1;
-    static const char CLOSED = -20;
+    static const char CLOSED = -10;
     static const char FRONTIER = -128;
     static const char THRESHOLD = 0;
     
@@ -39,11 +38,9 @@ class OccupancyGrid {
     //TODO: Make private
     //other variables
     Grid *grid; //occupancy grid
-    FrontierMap* fmap = nullptr;
     
     //constructor/destructor
     OccupancyGrid();
-    OccupancyGrid(FrontierMap* map);
     ~OccupancyGrid();
     
     //functions for adding to map

@@ -20,7 +20,6 @@ public:
     void setValue(int x, int y, unsigned short value);
     void changeValue(int x, int y, short value);
     unsigned short getValue(int x, int y);
-
 };
 
 #endif // OPENGRID_H
