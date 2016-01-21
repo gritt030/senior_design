@@ -2,9 +2,9 @@
 #include "opengrid.h"
 
 //constructor, create grid
-OpenGrid::OpenGrid() {
-  this->map = new unsigned short[GRID_SIZE * GRID_SIZE]();
-}
+ OpenGrid::OpenGrid() {
+   this->map = new unsigned short[GRID_SIZE * GRID_SIZE]();
+ }
 
 //destructor, destroy grid
 OpenGrid::~OpenGrid() {
@@ -73,4 +73,4 @@ unsigned short OpenGrid::getValue(int x, int y){
   //return value
   return this->map[index];
 }
-
+//*/

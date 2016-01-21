@@ -7,7 +7,7 @@
 class OpenGrid
 {
 public:
-    static const int GRID_SIZE = 101;   //size of one side of the grid (odd)
+    static const int GRID_SIZE = 801;   //size of one side of the grid (odd)
     static const int GRID_BOUNDARY = GRID_SIZE/2;
     static const unsigned short MAX_VALUE = 65535;  //maximum value we can have in a grid square
     unsigned short *map;                          //occupancy grid for this node

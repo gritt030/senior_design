@@ -23,10 +23,10 @@
 int main(int argc, char **argv) {
   if (argc != 2) return 0;
   
-  char* occImg = "/home/owner/pics/large/occupancy.png";
-  char* sorImg = "/home/owner/pics/large/refined.png";
-  char* rawImg = "/home/owner/pics/large/rawnav.png";
-  char* navImg = "/home/owner/pics/large/navigate.png";
+  char* occImg = "/home/owner/pics/presentation/occupancy.png";
+  char* sorImg = "/home/owner/pics/presentation/refined.png";
+  char* rawImg = "/home/owner/pics/presentation/rawnav.png";
+  char* navImg = "/home/owner/pics/presentation/navigate.png";
   //char* coordFile = "/home/owner/workspace/Datasets/output_ds3/coordsEstimate.txt";
   char* coordFile = (char*)argv[1];
   
@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
   int* nwson = new int[3];
   int* neson = new int[3];
   bool* range = new bool[4];
-  float angle = 0.26;
+  float angle = 0.25;
   double heading = 0.0;
   double distX = 0.0;
   double distY = 0.0;
@@ -71,6 +71,8 @@ int main(int argc, char **argv) {
   char* name = new char[128];
   
   std::srand(std::time(nullptr));
+  
+//   for (int i=0; i<1500; i++) r->updateCoordsFile();
   
   for (int i=0; i<4000; i++){
     //std::cout << "---- " << i << " ----" << std::endl;
@@ -107,10 +109,22 @@ int main(int argc, char **argv) {
     heading = (angle1 + angle2)/2.0;
     if (prevAngle == 0.0) prevAngle = heading;
     distA += sqrt((heading-prevAngle)*(heading-prevAngle));
-    angle = distA/1000.0 + 0.26;    //0.26
+    //angle = distA/1000.0 + 0.25;    //0.25
+    angle = 0.25;
     prevAngle = heading;
     
     a->addSonarScan(sonarDists, rawPos[0], rawPos[1], distX/100.0, distY/100.0, heading, angle);
+    
+//     if (i%1 == 0) {
+//     OccupancyGrid* o1 = a->generateMapNoBlur();
+//     char* name = new char[128];
+//     sprintf(name, "/home/owner/pics/presentation/%d.png", i);
+//     o1->sendToImage(name);
+//     delete name;
+//     delete o1;
+//     o1 = a->generateMapNoBlur();
+//     delete o1;
+//     }
     
     //use file for maps
     r->updateCoordsFile(); //*/
@@ -128,17 +142,18 @@ int main(int argc, char **argv) {
     //*/
   }
   
-  
+  std::cout << "Generating occupancy grid..." << std::endl;
   
   OccupancyGrid* o1 = a->generateMapNoBlur();
-  OccupancyGrid* o2 = a->generateMapReference();
+  //OccupancyGrid* o1 = a->generateMapReference();
 
   std::cout << "Image" << std::endl;
-  o1->sendToImage(occImg);
-  o2->sendToImage(sorImg);
-  g->sendToImage(rawImg);
-  g->cleanFrontier();
-  g->sendToImage(navImg);
+  o1->cleanFrontier();
+  o1->sendToImageSmall(occImg);
+  //o2->sendToImage(sorImg);
+  //g->sendToImage(rawImg);
+  //g->cleanFrontier();
+  //g->sendToImage(navImg);
   std::cout << "Done!" << std::endl;
   
   /*

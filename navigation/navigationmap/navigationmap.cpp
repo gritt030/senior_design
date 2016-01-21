@@ -116,8 +116,7 @@ void NavigationMap::openLine(int relX1, int relY1, int relX2, int relY2){
   //set last point in line
   grid->changeValue(x, y, OPEN);
   return;
-}
-
+} //*/
 
 
 void NavigationMap::openFrontierLine(int relX1, int relY1, int relX2, int relY2){
@@ -229,7 +228,7 @@ void NavigationMap::openFrontierLine(int relX1, int relY1, int relX2, int relY2)
   grid->changeValue(x, y, OPEN);
   frontiers->changeValue(x, y, FRONTIER);
   return;
-}
+} //*/
 
 
 //make all squares in a node grid between (x1,y1) and (x2,y2) open
@@ -238,7 +237,7 @@ void NavigationMap::openFrontierLine(int relX1, int relY1, int relX2, int relY2)
 void NavigationMap::openLineSide(int relX1, int relY1, int relX2, int relY2){
   //open line in grid
   this->openLine(relX1, relY1, relX2, relY2);
-  frontiers->changeValue(relX2, relY2, FRONTIER);
+    frontiers->changeValue(relX2, relY2, FRONTIER);
 }
 
 
@@ -248,7 +247,7 @@ void NavigationMap::openLineSide(int relX1, int relY1, int relX2, int relY2){
 void NavigationMap::openLineFront(int relX1, int relY1, int relX2, int relY2){
   //open line in grid
   this->openLine(relX1, relY1, relX2, relY2);
-  this->frontiers->changeValue(relX2, relY2, UNFRONTIER);
+    this->frontiers->changeValue(relX2, relY2, UNFRONTIER);
 }
 
 
@@ -258,20 +257,20 @@ void NavigationMap::openLineFront(int relX1, int relY1, int relX2, int relY2){
 void NavigationMap::closeLineSide(int relX1, int relY1, int relX2, int relY2){
   //open line in grid
   this->openLine(relX1, relY1, relX2, relY2);
-  //set final point of line to closed
-  grid->changeValue(relX2, relY2, -OPEN);
-  grid->changeValue(relX2, relY2, CLOSED);
-  frontiers->changeValue(relX2, relY2, UNFRONTIER);
+    //set final point of line to closed
+    grid->changeValue(relX2, relY2, -OPEN);
+    grid->changeValue(relX2, relY2, CLOSED);
+    frontiers->changeValue(relX2, relY2, UNFRONTIER);
 }
 
 
 void NavigationMap::closeFrontierLine(int relX1, int relY1, int relX2, int relY2){
   //open line in grid
   this->openFrontierLine(relX1, relY1, relX2, relY2);
-  //set final point of line to closed
-  grid->changeValue(relX2, relY2, -OPEN);
-  grid->changeValue(relX2, relY2, CLOSED);
-  frontiers->changeValue(relX2, relY2, UNFRONTIER);
+    //set final point of line to closed
+    grid->changeValue(relX2, relY2, -OPEN);
+    grid->changeValue(relX2, relY2, CLOSED);
+    frontiers->changeValue(relX2, relY2, UNFRONTIER);
 }
 
 
@@ -281,10 +280,10 @@ void NavigationMap::closeFrontierLine(int relX1, int relY1, int relX2, int relY2
 void NavigationMap::closeLineFront(int relX1, int relY1, int relX2, int relY2){
   //open line in grid
   this->openLine(relX1, relY1, relX2, relY2);
-  //set final point of line to closed
-  grid->changeValue(relX2, relY2, -OPEN);
-  grid->changeValue(relX2, relY2, CLOSED);
-  frontiers->changeValue(relX2, relY2, UNFRONTIER);
+    //set final point of line to closed
+    grid->changeValue(relX2, relY2, -OPEN);
+    grid->changeValue(relX2, relY2, CLOSED);
+    frontiers->changeValue(relX2, relY2, UNFRONTIER);
 }
 
 

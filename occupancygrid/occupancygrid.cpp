@@ -19,14 +19,17 @@ const int OccupancyGrid::KERNEL_SUMS[] = {15,83,166,252,333,416,496,575,654};
 OccupancyGrid::OccupancyGrid(){
   //create initial root node
   this->grid = new Grid();
+  this->frontiers = new Grid();
 }
 
 //destructor
 OccupancyGrid::~OccupancyGrid(){
   delete this->grid;
+  delete this->frontiers;
 }
 
 
+/*
 //Bresenham's Algorithm
 //make all squares in a node grid between (x1,y1) and (x2,y2) open
 // -GRID_SIZE/2 <= x1, x2, y1, y2 <= GRID_SIZE/2
@@ -136,6 +139,273 @@ bool OccupancyGrid::openLine(int relX1, int relY1, int relX2, int relY2){
   grid->changeValue(BOUNDARY+x, BOUNDARY-y, OccupancyGrid::OPEN);
   return true;
 }
+//*/
+
+
+
+
+
+
+
+
+
+
+
+
+void OccupancyGrid::removeGhosts(int relX1, int relY1, int relX2, int relY2){
+  //information on how we need to move
+  int x = relX2;                //position variables
+  int y = relY2;
+  int signX, signY;             //sign of movement direction
+  int deltaX = relX2 - relX1;   //distance we need to move
+  int deltaY = relY2 - relY1;
+  char count = GHOSTS;
+  
+  //special cases are handled here
+  //single point
+  if ((deltaX == 0) && (deltaY == 0)) {
+    return;
+    
+  //vertical line
+  } else if (deltaX == 0) {
+    signY = deltaY/abs(deltaY);
+    y += signY;
+    
+    while (grid->getValue(BOUNDARY+x, BOUNDARY-y) != 0) {
+      if (count-- == 0) return;
+      grid->setValue(BOUNDARY+x, BOUNDARY-y, 0);
+      y += signY;
+    }
+    return;
+    
+  //horizontal line
+  } else if (deltaY == 0) {
+    int signX = deltaX/abs(deltaX);
+    x += signX;
+    
+    while (grid->getValue(BOUNDARY+x, BOUNDARY-y) != 0) {
+      if (count-- == 0) return;
+      grid->changeValue(BOUNDARY+x, BOUNDARY-y, 0);
+      x += signX;
+    }
+    return;
+  }
+  
+  //switch to absolute value coordinates to make things easier
+  signX = deltaX/abs(deltaX);
+  signY = deltaY/abs(deltaY);
+  deltaX = abs(deltaX);
+  deltaY = abs(deltaY);
+  
+  //SPECIAL CASE: diagonal line
+  if (deltaY == deltaX) {
+    x += signX;
+    y += signY;
+  
+    while (grid->getValue(BOUNDARY+x, BOUNDARY-y) != 0) {
+      if (count-- == 0) return;
+      grid->changeValue(BOUNDARY+x, BOUNDARY-y, 0);
+      x += signX;
+      y += signY;
+    }
+    return;
+  }
+  
+  //change in x and y so far
+  int cx=deltaY>>1, cy=deltaX>>1;
+  
+  //line more horizontal than vertical
+  if (deltaX > deltaY) {
+    cy += deltaY;
+    if (cy > deltaX) {
+      y += signY;
+      cy -= deltaX;
+    //if (grid->getValue(BOUNDARY+x, BOUNDARY-y) == 0) {return;}
+      grid->changeValue(BOUNDARY+x, BOUNDARY-y, 0);
+    }
+    
+    //move horizontally
+    x += signX;
+      
+      
+    while (grid->getValue(BOUNDARY+x, BOUNDARY-y) != 0) {
+      if (count-- == 0) return;
+      //fill in current grid square
+      grid->changeValue(BOUNDARY+x, BOUNDARY-y, 0);
+      
+      //see if we need to move vertically
+      cy += deltaY;
+      if (cy > deltaX) {
+        y += signY;
+        cy -= deltaX;
+      //if (grid->getValue(BOUNDARY+x, BOUNDARY-y) == 0) {return;}
+        grid->changeValue(BOUNDARY+x, BOUNDARY-y, 0);
+      }
+      
+      //move horizontally
+      x += signX;
+    }
+    
+  //line more vertical than horizontal
+  } else {
+    //see if we need to move horizontally
+    cx += deltaX;
+    if (cx > deltaY) {
+      x += signX;
+      cx -= deltaY;
+    //if (grid->getValue(BOUNDARY+x, BOUNDARY-y) == 0) {return;}
+      grid->changeValue(BOUNDARY+x, BOUNDARY-y, 0);
+    }
+      
+    //move vertically
+    y += signY;
+    
+    while (grid->getValue(BOUNDARY+x, BOUNDARY-y) != 0) {
+      if (count-- == 0) return;
+      //fill in current grid square
+      grid->changeValue(BOUNDARY+x, BOUNDARY-y, 0);
+      
+      //see if we need to move horizontally
+      cx += deltaX;
+      if (cx > deltaY) {
+        x += signX;
+        cx -= deltaY;
+      //if (grid->getValue(BOUNDARY+x, BOUNDARY-y) == 0) {return;}
+        grid->changeValue(BOUNDARY+x, BOUNDARY-y, 0);
+      }
+      
+      //move vertically
+      y += signY;
+    }
+  }
+
+  return;
+}
+
+
+
+
+//draw all sonar no matter what. Bad version.
+bool OccupancyGrid::openLine(int relX1, int relY1, int relX2, int relY2){
+  //information on how we need to move
+  int x = relX1;                //position variables
+  int y = relY1;
+  int signX, signY;             //sign of movement direction
+  int deltaX = relX2 - relX1;   //distance we need to move
+  int deltaY = relY2 - relY1;
+    
+  //special cases are handled here
+  //single point
+  if ((deltaX == 0) && (deltaY == 0)) {
+    grid->changeValue(BOUNDARY+x, BOUNDARY-y, OccupancyGrid::OPEN);
+    return true;
+    
+  //vertical line
+  } else if (deltaX == 0) {
+    signY = deltaY/abs(deltaY);
+    
+    for (int i=0; i<abs(deltaY); i++) {
+      //if (grid->getValue(BOUNDARY+x, BOUNDARY-y) < OccupancyGrid::THRESHOLD) {grid->changeValue(BOUNDARY+x, BOUNDARY-y, OccupancyGrid::OPEN); return false;}
+      grid->changeValue(BOUNDARY+x, BOUNDARY-y, OccupancyGrid::OPEN);
+      y += signY;
+    }
+    grid->changeValue(BOUNDARY+x, BOUNDARY-y, OccupancyGrid::OPEN);
+    return true;
+    
+  //horizontal line
+  } else if (deltaY == 0) {
+    int signX = deltaX/abs(deltaX);
+    
+    for (int i=0; i<abs(deltaX); i++) {
+      //if (grid->getValue(BOUNDARY+x, BOUNDARY-y) < OccupancyGrid::THRESHOLD) {grid->changeValue(BOUNDARY+x, BOUNDARY-y, OccupancyGrid::OPEN); return false;}
+      grid->changeValue(BOUNDARY+x, BOUNDARY-y, OccupancyGrid::OPEN);
+      x += signX;
+    }
+    grid->changeValue(BOUNDARY+x, BOUNDARY-y, OccupancyGrid::OPEN);
+    return true;
+  }
+  
+  //switch to absolute value coordinates to make things easier
+  signX = deltaX/abs(deltaX);
+  signY = deltaY/abs(deltaY);
+  deltaX = abs(deltaX);
+  deltaY = abs(deltaY);
+  
+  //SPECIAL CASE: diagonal line
+  if (deltaY == deltaX) {
+    for (int i=0; i<deltaX; i++) {
+      //if (grid->getValue(BOUNDARY+x, BOUNDARY-y) < OccupancyGrid::THRESHOLD) {grid->changeValue(BOUNDARY+x, BOUNDARY-y, OccupancyGrid::OPEN); return false;}
+      grid->changeValue(BOUNDARY+x, BOUNDARY-y, OccupancyGrid::OPEN);
+      x += signX;
+      y += signY;
+    }
+    grid->changeValue(BOUNDARY+x, BOUNDARY-y, OccupancyGrid::OPEN);
+    return true;
+  }
+  
+  //change in x and y so far
+  int cx=deltaY>>1, cy=deltaX>>1;
+  
+  //line more horizontal than vertical
+  if (deltaX > deltaY) {
+    for (int i=0; i<deltaX; i++) {
+      //fill in current grid square
+      //if (grid->getValue(BOUNDARY+x, BOUNDARY-y) < OccupancyGrid::THRESHOLD) {grid->changeValue(BOUNDARY+x, BOUNDARY-y, OccupancyGrid::OPEN); return false;}
+      grid->changeValue(BOUNDARY+x, BOUNDARY-y, OccupancyGrid::OPEN);
+      
+      //see if we need to move vertically
+      cy += deltaY;
+      if (cy > deltaX) {
+        y += signY;
+        cy -= deltaX;
+        //if (grid->getValue(BOUNDARY+x, BOUNDARY-y) < OccupancyGrid::THRESHOLD) {grid->changeValue(BOUNDARY+x, BOUNDARY-y, OccupancyGrid::OPEN); return false;}
+        grid->changeValue(BOUNDARY+x, BOUNDARY-y, OccupancyGrid::OPEN);
+      }
+      
+      //move horizontally
+      x += signX;
+    }
+    
+  //line more vertical than horizontal
+  } else {
+    for (int i=0; i<deltaY; i++) {
+      //fill in current grid square
+      //if (grid->getValue(BOUNDARY+x, BOUNDARY-y) < OccupancyGrid::THRESHOLD) {grid->changeValue(BOUNDARY+x, BOUNDARY-y, OccupancyGrid::OPEN); return false;}
+      grid->changeValue(BOUNDARY+x, BOUNDARY-y, OccupancyGrid::OPEN);
+      
+      //see if we need to move horizontally
+      cx += deltaX;
+      if (cx > deltaY) {
+        x += signX;
+        cx -= deltaY;
+        //if (grid->getValue(BOUNDARY+x, BOUNDARY-y) < OccupancyGrid::THRESHOLD) {grid->changeValue(BOUNDARY+x, BOUNDARY-y, OccupancyGrid::OPEN); return false;}
+        grid->changeValue(BOUNDARY+x, BOUNDARY-y, OccupancyGrid::OPEN);
+      }
+      
+      //move vertically
+      y += signY;
+    }
+  }
+  
+  //set last point in line
+  grid->changeValue(BOUNDARY+x, BOUNDARY-y, OccupancyGrid::OPEN);
+  return true;
+}
+//*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 //make all squares in a node grid between (x1,y1) and (x2,y2) open and close point (x2,y2)
@@ -147,18 +417,7 @@ void OccupancyGrid::closeLine(int relX1, int relY1, int relX2, int relY2){
     //set final point of line to closed
     grid->changeValue(BOUNDARY+relX2, BOUNDARY-relY2, -OccupancyGrid::OPEN);
     grid->changeValue(BOUNDARY+relX2, BOUNDARY-relY2, OccupancyGrid::CLOSED);
-  }
-}
-
-
-//make all squares in a node grid between (x1,y1) and (x2,y2) open and frontier point (x2,y2)
-// -GRID_SIZE/2 <= x1, x2, y1, y2 <= GRID_SIZE/2
-// (0,0) is the central square in the grid
-void OccupancyGrid::frontierLine(int relX1, int relY1, int relX2, int relY2){
-  //open line in grid
-  if (this->openLine(relX1, relY1, relX2, relY2)) {
-    //set final point in line to frontier
-    grid->setValue(BOUNDARY+relX2, BOUNDARY-relY2, OccupancyGrid::FRONTIER);
+    //this->removeGhosts(relX1, relY1, relX2, relY2);
   }
 }
 

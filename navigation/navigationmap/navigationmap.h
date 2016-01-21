@@ -16,7 +16,7 @@ class NavigationMap
 {
   public:
     //occupancy variables
-    static const short OPEN = 10;
+    static const short OPEN = 1;
     static const short CLOSED = -10;
     static const char FRONTIER = 5;
     static const char UNFRONTIER = -5;

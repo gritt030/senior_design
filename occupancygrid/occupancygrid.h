@@ -17,8 +17,12 @@ class OccupancyGrid {
     static const char UNKNOWN = 0;
     static const char OPEN = 1;
     static const char CLOSED = -10;
-    static const char FRONTIER = -128;
     static const char THRESHOLD = 0;
+    static const char GHOSTS = 40;
+    
+    static const char FRONT_THRESH = 0;
+    static const char FRONTIER = 1;
+    static const char UNFRONTIER = -1;
     
     //used to correct coordinates when setting values in grid
     static const int BOUNDARY = Grid::GRID_SIZE / 2;
@@ -38,6 +42,7 @@ class OccupancyGrid {
     //TODO: Make private
     //other variables
     Grid *grid; //occupancy grid
+    Grid *frontiers;    //frontier grid
     
     //constructor/destructor
     OccupancyGrid();
@@ -46,11 +51,14 @@ class OccupancyGrid {
     //functions for adding to map
     bool openLine(int relX1, int relY1, int relX2, int relY2); //TODO: make this private
     void closeLine(int relX1, int relY1, int relX2, int relY2);
-    void frontierLine(int relX1, int relY1, int relX2, int relY2);
+    bool openLineFrontier(int relX1, int relY1, int relX2, int relY2); //TODO: make this private
+    void closeLineFrontier(int relX1, int relY1, int relX2, int relY2);
     
     //functions for adding sonar slices to map
     void openSlice(int relX1, int relY1, int relX2, int relY2, float angle);
     void closeSlice(int relX1, int relY1, int relX2, int relY2, float angle);
+    void openSliceFrontier(int relX1, int relY1, int relX2, int relY2, float angle);
+    void closeSliceFrontier(int relX1, int relY1, int relX2, int relY2, float angle);
     
     //blur the map according to uncertainty
     void blurMapX(int uncertainty);
@@ -68,10 +76,17 @@ class OccupancyGrid {
     
     //output map as image
     void sendToImage(char* filename);
+    void sendToImageFrontier(char* filename);
+    void sendToImageSmall(char* filename);
+    
+    void cleanFrontier();
     
   private:
     //set a pixel in the image
     void setImagePixel(PngWriter* w, int x, int y, char value);
+    void setImagePixelFrontier(PngWriter* w, int x, int y, char value, char front);
+    
+    void removeGhosts(int relX1, int relY1, int relX2, int relY2);
     
 };
 

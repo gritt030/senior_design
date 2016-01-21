@@ -96,6 +96,8 @@ void SonarArchive::propagateHeadError(){
 
 
 OccupancyGrid* SonarArchive::generateMap(){
+  this->reverseScans();
+  
   OccupancyGrid* output = new OccupancyGrid();
   int* buf = new int[8];
   int x, y;
@@ -179,6 +181,8 @@ OccupancyGrid* SonarArchive::generateMap(){
 
 
 OccupancyGrid* SonarArchive::generateMapWalls(){
+  this->reverseScans();
+  
   OccupancyGrid* output = new OccupancyGrid();
   int* buf = new int[8];
   int x, y;
@@ -426,6 +430,8 @@ OccupancyGrid* SonarArchive::generateMapReference(){
 
 
 OccupancyGrid* SonarArchive::generateMapNoBlur(){
+  this->reverseScans();
+  
   OccupancyGrid* output = new OccupancyGrid();
   int* buf = new int[8];
   int x, y;
@@ -440,8 +446,8 @@ OccupancyGrid* SonarArchive::generateMapNoBlur(){
     this->getSonarCoords(current, buf);
     angle = this->getSonarAngles(current);
     
-    if (current->w < SONAR_MAX) output->closeSlice(x, y, x+buf[0], y+buf[1], (float)angle);
-    else output->openSlice(x, y, x+buf[0], y+buf[1], (float)angle);
+    if (current->w < SONAR_MAX) output->closeSliceFrontier(x, y, x+buf[0], y+buf[1], (float)angle);
+    else output->openSliceFrontier(x, y, x+buf[0], y+buf[1], (float)angle);
     
     if (current->nw < SONAR_MAX) output->closeSlice(x, y, x+buf[2], y+buf[3], (float)angle);
     else output->openSlice(x, y, x+buf[2], y+buf[3], (float)angle);
@@ -449,8 +455,8 @@ OccupancyGrid* SonarArchive::generateMapNoBlur(){
     if (current->ne < SONAR_MAX) output->closeSlice(x, y, x+buf[4], y+buf[5], (float)angle);
     else output->openSlice(x, y, x+buf[4], y+buf[5], (float)angle);
     
-    if (current->e < SONAR_MAX) output->closeSlice(x, y, x+buf[6], y+buf[7], (float)angle);
-    else output->openSlice(x, y, x+buf[6], y+buf[7], (float)angle);
+    if (current->e < SONAR_MAX) output->closeSliceFrontier(x, y, x+buf[6], y+buf[7], (float)angle);
+    else output->openSliceFrontier(x, y, x+buf[6], y+buf[7], (float)angle);
 
     current = current->previous;
   }
@@ -753,6 +759,25 @@ void SonarArchive::sortXsortYScans(){
   }
   
   this->prevScan = mainHead;
+}
+
+
+
+void SonarArchive::reverseScans(){
+  SonarScan* next = this->prevScan->previous;
+  SonarScan* cur = this->prevScan;
+  SonarScan* prev = nullptr;
+  
+  while (next != nullptr) {
+    cur->previous = prev;
+    
+    prev = cur;
+    cur = next;
+    next = next->previous;
+  }
+  
+  cur->previous = prev;
+  this->prevScan = cur;
 }
 
 

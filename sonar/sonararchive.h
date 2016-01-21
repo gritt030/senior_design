@@ -31,6 +31,7 @@ public:
   void sortScansX();
   void sortScansY();
   void sortXsortYScans();
+  void reverseScans();
   void printScans();
   
 private:
