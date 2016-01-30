@@ -62,20 +62,20 @@ void PngWriter::set_pixel(int x, int y, int color){
 
 
 void PngWriter::output_image(){
-  std::cout << "Writing image: " << this->filename << std::endl;
+  //std::cout << "Writing image: " << this->filename << std::endl;
   
   this->open_file();
-  std::cout << "    Initializing file" << std::endl;
+  //std::cout << "    Initializing file" << std::endl;
   this->initialize_file();
-  std::cout << "    Writing header" << std::endl;
+  //std::cout << "    Writing header" << std::endl;
   this->write_header();
-  std::cout << "    Writing image data" << std::endl;
+  //std::cout << "    Writing image data" << std::endl;
   this->write_image_data();
-  std::cout << "    Finalizing file" << std::endl;
+  //std::cout << "    Finalizing file" << std::endl;
   this->finalize_write();
-  std::cout << "    Cleaning up" << std::endl;
+  //std::cout << "    Cleaning up" << std::endl;
   this->cleanup();
-  std::cout << "Done writing image" << std::endl;
+  //std::cout << "Done writing image" << std::endl;
 }
 
 void PngWriter::open_file(){

@@ -29,7 +29,7 @@ OccupancyGrid::~OccupancyGrid(){
 }
 
 
-/*
+
 //Bresenham's Algorithm
 //make all squares in a node grid between (x1,y1) and (x2,y2) open
 // -GRID_SIZE/2 <= x1, x2, y1, y2 <= GRID_SIZE/2
@@ -284,7 +284,7 @@ void OccupancyGrid::removeGhosts(int relX1, int relY1, int relX2, int relY2){
 
 
 
-
+/*
 //draw all sonar no matter what. Bad version.
 bool OccupancyGrid::openLine(int relX1, int relY1, int relX2, int relY2){
   //information on how we need to move
@@ -422,7 +422,7 @@ void OccupancyGrid::closeLine(int relX1, int relY1, int relX2, int relY2){
 }
 
 
-void OccupancyGrid::sendToImage(char* filename){
+void OccupancyGrid::sendToImage(char* filename, int x, int y){
   PngWriter* w = new PngWriter();
   int size = Grid::GRID_SIZE;
   
@@ -434,6 +434,22 @@ void OccupancyGrid::sendToImage(char* filename){
       setImagePixel(w, i, j, cur);
     }
   }
+  
+  int px = BOUNDARY+x;
+  int py = BOUNDARY-y;
+  w->set_pixel(px,py,0xff0000ff);
+  w->set_pixel(px+1,py,0xff0000ff);
+  w->set_pixel(px-1,py,0xff0000ff);
+  w->set_pixel(px,py+1,0xff0000ff);
+  w->set_pixel(px,py-1,0xff0000ff);
+  w->set_pixel(px+2,py,0xff0000ff);
+  w->set_pixel(px-2,py,0xff0000ff);
+  w->set_pixel(px,py+2,0xff0000ff);
+  w->set_pixel(px,py-2,0xff0000ff);
+  w->set_pixel(px+1,py+1,0xff0000ff);
+  w->set_pixel(px-1,py+1,0xff0000ff);
+  w->set_pixel(px-1,py-1,0xff0000ff);
+  w->set_pixel(px+1,py-1,0xff0000ff);
   
   w->output_image();
   delete w;
@@ -675,6 +691,7 @@ void OccupancyGrid::blurMapX(int uncertainty){
       buffer[uncertainty-1] = (char)sum;
     }
   }
+  delete buffer;
 }
 
 
@@ -719,6 +736,7 @@ void OccupancyGrid::blurMapY(int uncertainty){
       buffer[uncertainty-1] = (char)sum;
     }
   }
+  delete buffer;
 }
 
 

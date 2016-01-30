@@ -449,11 +449,11 @@ OccupancyGrid* SonarArchive::generateMapNoBlur(){
     if (current->w < SONAR_MAX) output->closeSliceFrontier(x, y, x+buf[0], y+buf[1], (float)angle);
     else output->openSliceFrontier(x, y, x+buf[0], y+buf[1], (float)angle);
     
-    if (current->nw < SONAR_MAX) output->closeSlice(x, y, x+buf[2], y+buf[3], (float)angle);
-    else output->openSlice(x, y, x+buf[2], y+buf[3], (float)angle);
+    if (current->nw < SONAR_MAX) output->closeSliceFrontier(x, y, x+buf[2], y+buf[3], (float)angle);
+    else output->openSliceFrontier(x, y, x+buf[2], y+buf[3], (float)angle);
     
-    if (current->ne < SONAR_MAX) output->closeSlice(x, y, x+buf[4], y+buf[5], (float)angle);
-    else output->openSlice(x, y, x+buf[4], y+buf[5], (float)angle);
+    if (current->ne < SONAR_MAX) output->closeSliceFrontier(x, y, x+buf[4], y+buf[5], (float)angle);
+    else output->openSliceFrontier(x, y, x+buf[4], y+buf[5], (float)angle);
     
     if (current->e < SONAR_MAX) output->closeSliceFrontier(x, y, x+buf[6], y+buf[7], (float)angle);
     else output->openSliceFrontier(x, y, x+buf[6], y+buf[7], (float)angle);
@@ -461,6 +461,7 @@ OccupancyGrid* SonarArchive::generateMapNoBlur(){
     current = current->previous;
   }
 
+  this->reverseScans();
   return output;
 }
 

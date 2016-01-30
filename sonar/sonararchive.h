@@ -16,7 +16,7 @@ public:
   double HEADING_ERROR = 0.01;
   
   static const int SCALE = 10;  //number of cm per grid square
-  static const int SONAR_MAX = 400;    //maximum range on sonar (not based on scale)
+  static const int SONAR_MAX = 325;    //maximum range on sonar (not based on scale)
   
   SonarArchive();
   void addSonarScan(int* sonarDists, double x, double y, double xErr, double yErr, double head, double headErr);

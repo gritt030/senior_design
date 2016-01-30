@@ -440,6 +440,26 @@ void OccupancyGrid::cleanFrontier(){
   this->frontiers = newGrid;
   newGrid = new Grid();
   
+  //clear frontiers that are surrounded by closed cells
+  for (int i=0; i<Grid::GRID_SIZE; i++) {
+    for (int j=0; j<Grid::GRID_SIZE; j++) {
+      if (frontiers->getValue(i,j) > FRONT_THRESH){
+        int fullMap = 0;
+        if ((grid->getValue(i+1,j) > THRESHOLD) && (frontiers->getValue(i+1,j) <= FRONT_THRESH)) fullMap++;
+        if ((grid->getValue(i-1,j) > THRESHOLD) && (frontiers->getValue(i-1,j) <= FRONT_THRESH)) fullMap++;
+        if ((grid->getValue(i,j+1) > THRESHOLD) && (frontiers->getValue(i,j+1) <= FRONT_THRESH)) fullMap++;
+        if ((grid->getValue(i,j-1) > THRESHOLD) && (frontiers->getValue(i,j-1) <= FRONT_THRESH)) fullMap++;
+        
+        if (fullMap != 0)
+          newGrid->setValue(i,j,frontiers->getValue(i,j));
+      }
+    }
+  }
+  
+  delete this->frontiers;
+  this->frontiers = newGrid;
+  newGrid = new Grid();
+  
   //clear frontiers that are alone
   for (int i=0; i<Grid::GRID_SIZE; i++){
     for (int j=0; j<Grid::GRID_SIZE; j++) {

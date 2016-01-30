@@ -9,6 +9,7 @@
 #include <algorithm>
 
 #include "grid/grid.h"
+#include "grid/houghgrid.h"
 #include "./../pngwriter/png_writer.h"
 
 class OccupancyGrid {
@@ -75,11 +76,22 @@ class OccupancyGrid {
 
     
     //output map as image
-    void sendToImage(char* filename);
+    void sendToImage(char* filename, int x, int y);
     void sendToImageFrontier(char* filename);
     void sendToImageSmall(char* filename);
     
     void cleanFrontier();
+    
+    
+    
+    //Hough transform stuff
+    OccupancyGrid* generateHoughMap();
+    void traceHoughWalls(OccupancyGrid* newGrid, HoughGrid* hough);
+    void traceHoughLine(double radius, double theta, OccupancyGrid* newGrid);
+    void sendHoughToImage(char* filename);
+    void setImagePixelHough(PngWriter* w, int x, int y, unsigned short value);
+    HoughGrid* performHoughTransform();
+    static const int BRIDGE = 12;   //number of open cells to jump when tracing lines
     
   private:
     //set a pixel in the image
