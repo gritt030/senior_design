@@ -147,7 +147,7 @@ int main(int argc, char **argv) {
     std::sprintf(name, "/home/owner/pics/fisheye/mapsA/p%07d.png", num);
     num += 1;
     oo->sendToImage(name, rawPos[0]/10, rawPos[1]/10);
-    delete name;
+    delete[] name;
     delete oo;
     std::cout << num << std::endl;
     //*/
@@ -174,12 +174,30 @@ int main(int argc, char **argv) {
   std::cout << "Generating hough map..." << std::endl;
   OccupancyGrid* hough = o1->generateHoughMap();
   //OccupancyGrid* o1 = a->generateMapReference();
-
+  
+  for (int i=0; i<5; i+=1) {
+    char* name = new char[128];
+    std::sprintf(name, "/home/owner/pics/pics/numpeaks/p%07d.png", i);
+    hough = o1->generateHoughMap();
+    hough->sendToImage(name,0,0);
+    delete[] name;
+    delete hough;
+    std::cout << i << std::endl;
+  }
+  hough = o1->generateHoughMap();
+  
+  
+  
+  
+  
+  
+  
   std::cout << "Image" << std::endl;
   //o1->cleanFrontier();
   o1->sendHoughToImage(rawImg);
   o1->sendToImage(occImg, 0,0);
   hough->sendToImage(sorImg, 0,0);
+  o1->sendHoughMaximaToImage(navImg);
   //o2->sendToImage(sorImg);
   //g->sendToImage(rawImg);
   //g->cleanFrontier();

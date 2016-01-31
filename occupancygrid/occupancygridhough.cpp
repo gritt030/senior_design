@@ -118,6 +118,28 @@ void OccupancyGrid::sendHoughToImage(char* filename){
 }
 
 
+void OccupancyGrid::sendHoughMaximaToImage(char* filename){
+  HoughGrid* h = this->performHoughTransform();
+  h->findMaxima();
+  
+  PngWriter* w = new PngWriter();
+  int size = HoughGrid::GRID_SIZE;
+  
+  w->create_image(filename, size, size);
+  
+  for (int i=0; i<HoughGrid::GRID_SIZE; i++){
+    for (int j=0; j<HoughGrid::GRID_SIZE; j++) {
+      unsigned short cur = h->getValue(i, j);
+      setImagePixelHough(w, i, j, cur);
+    }
+  }
+  
+  w->output_image();
+  delete w;
+  delete h;
+}
+
+
 void OccupancyGrid::setImagePixelHough(PngWriter* w, int x, int y, unsigned short value){
   int color;
   

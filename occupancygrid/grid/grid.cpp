@@ -8,7 +8,7 @@ Grid::Grid() {
 
 //destructor, destroy grid
 Grid::~Grid() {
-  delete this->map;
+  delete[] this->map;
 }
 
 
@@ -31,17 +31,17 @@ void Grid::changeValue(int x, int y, char value){
     return;
   }
   
-  int index = y*Grid::GRID_SIZE + x;
-  char current = this->map[index];
+  //int index = y*Grid::GRID_SIZE + x;
+  char current = this->map[y*Grid::GRID_SIZE + x];
   
   if (value > 0) {
     if (current <= (Grid::MAX_VALUE - value)) {
-      this->map[index] = value + current;
-    } else this->map[index] = Grid::MAX_VALUE;
+      this->map[y*Grid::GRID_SIZE + x] = value + current;
+    } else this->map[y*Grid::GRID_SIZE + x] = Grid::MAX_VALUE;
   } else {
     if (current >= (-Grid::MAX_VALUE-value)) {
-      this->map[index] = value + current;
-    } else this->map[index] = -Grid::MAX_VALUE;
+      this->map[y*Grid::GRID_SIZE + x] = value + current;
+    } else this->map[y*Grid::GRID_SIZE + x] = -Grid::MAX_VALUE;
   }
 }
 
@@ -54,7 +54,6 @@ char Grid::getValue(int x, int y){
   }
   
   //return value
-  char value = this->map[y*Grid::GRID_SIZE + x];
-  return value;
+  return this->map[y*Grid::GRID_SIZE + x];
 }
 

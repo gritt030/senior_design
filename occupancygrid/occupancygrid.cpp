@@ -691,7 +691,7 @@ void OccupancyGrid::blurMapX(int uncertainty){
       buffer[uncertainty-1] = (char)sum;
     }
   }
-  delete buffer;
+  delete[] buffer;
 }
 
 
@@ -736,7 +736,7 @@ void OccupancyGrid::blurMapY(int uncertainty){
       buffer[uncertainty-1] = (char)sum;
     }
   }
-  delete buffer;
+  delete[] buffer;
 }
 
 

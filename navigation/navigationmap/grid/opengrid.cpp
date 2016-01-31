@@ -8,7 +8,7 @@
 
 //destructor, destroy grid
 OpenGrid::~OpenGrid() {
-  delete this->map;
+  delete[] this->map;
 }
 
 

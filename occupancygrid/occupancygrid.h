@@ -89,9 +89,10 @@ class OccupancyGrid {
     void traceHoughWalls(OccupancyGrid* newGrid, HoughGrid* hough);
     void traceHoughLine(double radius, double theta, OccupancyGrid* newGrid);
     void sendHoughToImage(char* filename);
+    void sendHoughMaximaToImage(char* filename);
     void setImagePixelHough(PngWriter* w, int x, int y, unsigned short value);
     HoughGrid* performHoughTransform();
-    static const int BRIDGE = 12;   //number of open cells to jump when tracing lines
+    static const int BRIDGE = 12;   //number of open cells to jump when tracing lines (12)
     
   private:
     //set a pixel in the image

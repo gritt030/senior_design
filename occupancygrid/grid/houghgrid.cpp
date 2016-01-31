@@ -9,7 +9,7 @@ HoughGrid::HoughGrid() {
 
 //destructor, destroy grid
 HoughGrid::~HoughGrid() {
-  delete this->map;
+  delete[] this->map;
 }
 
 
@@ -32,12 +32,12 @@ void HoughGrid::changeValue(int x, int y, unsigned short value){
     return;
   }
   
-  int index = y*HoughGrid::GRID_SIZE + x;
-  unsigned short current = this->map[index];
+  //int index = y*HoughGrid::GRID_SIZE + x;
+  unsigned short current = this->map[y*HoughGrid::GRID_SIZE + x];
   unsigned short next = current + value;
   
-  if (next < current) this->map[index] = MAX_VALUE;
-  else this->map[index] = next;
+  if (next < current) this->map[y*HoughGrid::GRID_SIZE + x] = MAX_VALUE;
+  else this->map[y*HoughGrid::GRID_SIZE + x] = next;
 }
 
 
@@ -50,8 +50,7 @@ unsigned short HoughGrid::getValue(int x, int y){
   }
   
   //return value
-  unsigned short value = this->map[y*HoughGrid::GRID_SIZE + x];
-  return value;
+  return this->map[y*HoughGrid::GRID_SIZE + x];
 }
 
 
@@ -79,88 +78,18 @@ void HoughGrid::addHoughPointWeighted(int x, int y, unsigned short weight){
 }
 
 
-//TODO: make this actually find the maxima
 void HoughGrid::findMaxima(){
+  this->maxima1();
+  this->maxima2();
+}
+
+
+void HoughGrid::maxima1(){
   HoughGrid* newGrid = new HoughGrid();
+
   
-  unsigned short* valArr = new unsigned short[NUM_PEAKS]();
-  int* xArr = new int[NUM_PEAKS]();
-  int* yArr = new int[NUM_PEAKS]();
-  int index = NUM_PEAKS - 1;
-  
-  for (int i=0; i<HoughGrid::GRID_SIZE; i++) {
-    for (int j=0; j<HoughGrid::GRID_SIZE; j++) {
-      unsigned short cur = this->getValue(i,j);
-      
-      if (cur >= valArr[index]) {
-        bool check = false;
-        
-        for (int k=0; k<NUM_PEAKS; k++){
-          if (check == false) {
-            if ((abs(i-xArr[k]) < DISTANCE) || 
-                (abs(j-yArr[k]) < DISTANCE) || 
-                (abs(i-xArr[k]) > (GRID_SIZE - DISTANCE)) || 
-                (abs(j-yArr[k]) > (GRID_SIZE - DISTANCE))) {
-              check = true;
-              if (valArr[k] < cur) {
-                valArr[k] = cur;
-                xArr[k] = i;
-                yArr[k] = j;
-              }
-            }
-          } else {
-            if (valArr[k] > valArr[k-1]){
-              unsigned short a = valArr[k-1];
-              int b = xArr[k-1];
-              int c = yArr[k-1];
-              
-              valArr[k-1] = valArr[k];
-              xArr[k-1] = xArr[k];
-              yArr[k-1] = yArr[k];
-              valArr[k] = a;
-              xArr[k] = b;
-              yArr[k] = c;
-            }
-          }
-        }
-        
-        if (check == false){
-          valArr[index] = cur;
-          xArr[index] = i;
-          yArr[index] = j;
-          index--;
-          
-          while ((index >= 0) && (cur > valArr[index])){
-            valArr[index+1] = valArr[index];
-            xArr[index+1] = xArr[index];
-            yArr[index+1] = yArr[index];
-            valArr[index] = cur;
-            xArr[index] = i;
-            yArr[index] = j;
-            index--;
-          }
-          
-          index = NUM_PEAKS - 1;
-        }
-      }
-    }
-  }
-    
-  for (int i=0; i<NUM_PEAKS; i++){
-    /*
-    std::cout << (int)valArr[i] << ", ";
-    std::cout << xArr[i] << ", ";
-    std::cout << yArr[i] << std::endl; //*/
-    newGrid->setValue(xArr[i], yArr[i], valArr[i]);
-  }
-  
-  delete[] valArr;
-  delete[] xArr;
-  delete[] yArr;
-  
-  /*
   int ex,ey,wx,wy;
-  unsigned short n,s,e,w, cur;
+  unsigned short n,s,e,w,nw,ne,sw,se, cur;
   
   for (int i=0; i<HoughGrid::GRID_SIZE; i++) {
     for (int j=1; j<HoughGrid::GRID_SIZE-1; j++) {
@@ -177,23 +106,98 @@ void HoughGrid::findMaxima(){
         ey = 2*Grid::GRID_SIZE - j;
       }
       
+      int id = i*HoughGrid::GRID_SIZE;
+      int wd = wx*HoughGrid::GRID_SIZE;
+      int ed = ex*HoughGrid::GRID_SIZE;
+      int jd = j;
+      
+      cur = this->map[id+jd];
+      jd--;
+      nw = this->map[wd+jd];
+      ne = this->map[ed+jd];
+      n = this->map[id+jd];
+      jd+=2;
+      sw = this->map[wd+jd];
+      se = this->map[ed+jd];
+      s = this->map[id+jd];
+      w = this->map[wd+wy];
+      e = this->map[ed+ey];
+      
+      /*
       n = this->getValue(i,j-1);
       s = this->getValue(i,j+1);
       e = this->getValue(ex,ey);
       w = this->getValue(wx,wy);
+      nw = this->getValue(wx,j-1);
+      ne = this->getValue(ex,j-1);
+      sw = this->getValue(wx,j+1);
+      se = this->getValue(ex,j+1);
       cur = this->getValue(i,j);
+      */
       
-      if ((cur>n) && (cur>s) && (cur>e) && (cur>w)) {
+      if ((cur>n) && (cur>s) && (cur>e) && (cur>w) && (cur>nw) && (cur>ne) && (cur>sw) && (cur>se)) {
         newGrid->setValue(i,j,cur);
       }
     }
   }
-  //*/
   
-  delete this->map;
+  delete[] this->map;
   this->map = newGrid->map;
   newGrid->map = (unsigned short*)nullptr;
   delete newGrid;
+}
+
+
+void HoughGrid::maxima2(){
+  HoughGrid* newGrid = new HoughGrid();
+  
+  unsigned short* valArr = new unsigned short[NUM_PEAKS]();
+  int* xArr = new int[NUM_PEAKS]();
+  int* yArr = new int[NUM_PEAKS]();
+  unsigned short min = 0;
+  int mindex = 0;
+  unsigned short cur;
+  
+  for (int i=0; i<HoughGrid::GRID_SIZE; i++) {
+    for (int j=0; j<HoughGrid::GRID_SIZE; j++) {
+      cur = this->map[i*HoughGrid::GRID_SIZE + j];
+      if (cur > min) {
+        valArr[mindex] = cur;
+        xArr[mindex] = i;
+        yArr[mindex] = j;
+        mindex = submaxima1(valArr);
+        min = valArr[mindex];
+      }
+    }
+  }
+  
+  for (int i=0; i<NUM_PEAKS; i++){
+    newGrid->setValue(xArr[i], yArr[i], valArr[i]);
+  }
+  
+  delete[] valArr;
+  delete[] xArr;
+  delete[] yArr;
+  
+  delete[] this->map;
+  this->map = newGrid->map;
+  newGrid->map = (unsigned short*)nullptr;
+  delete newGrid;
+}
+
+
+int HoughGrid::submaxima1(unsigned short* valArr){
+      unsigned short min = valArr[0];
+      int mindex = 0;
+      
+      for (int k=1; k<NUM_PEAKS; k++){
+          if (valArr[k] < min) {
+            min = valArr[k];
+            mindex = k;
+          }
+      }
+      
+      return mindex;
 }
 
 

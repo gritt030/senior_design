@@ -8,7 +8,7 @@ FrontierGrid::FrontierGrid() {
 
 //destructor, destroy grid
 FrontierGrid::~FrontierGrid() {
-  delete this->map;
+  delete[] this->map;
 }
 
 
