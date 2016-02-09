@@ -53,6 +53,7 @@ void OccupancyGrid::traceHoughLine(double radius, double theta, OccupancyGrid* n
   double s = sin(theta);
   double c = cos(theta);
   int count = BRIDGE;
+  int count2 = 0;
   
   //line more horizontal than vertical
   if ((theta > 0.7853981634) && (theta < 2.35619449)) {
@@ -60,15 +61,33 @@ void OccupancyGrid::traceHoughLine(double radius, double theta, OccupancyGrid* n
       y = (radius-x*c)/s;
       
       if (this->grid->getValue((int)x, (int)y) < 0) {
-        newGrid->grid->setValue((int)x, (int)y, -10);
+        count2++;
         
-        if ((count > 0) && (count < BRIDGE)){
-          for (i = (x-count); i<x; i++){
+        if (count >= BRIDGE) {
+          count2 = 0;
+          count = 0;
+          
+        } else if (count2 < MIN_BRIDGE) {
+          continue;
+          
+        } else if (count2 = MIN_BRIDGE) {
+          for (i = (x-count2-count); i<=x; i++){
             y = (radius-i*c)/s;
             newGrid->grid->setValue((int)i, (int)y, -10);
           }
+          count = 0;
+          
+        } else if (count > 0) {
+          for (i = (x-count); i<=x; i++){
+            y = (radius-i*c)/s;
+            newGrid->grid->setValue((int)i, (int)y, -10);
+          }
+          count = 0;
+          
+        } else {
+          newGrid->grid->setValue((int)x, (int)y, -10);
         }
-        count = 0;
+        
       } else {
         count++;
       }
@@ -80,15 +99,33 @@ void OccupancyGrid::traceHoughLine(double radius, double theta, OccupancyGrid* n
       x = (radius-y*s)/c;
       
       if (this->grid->getValue((int)x, (int)y) < 0) {
-        newGrid->grid->setValue((int)x, (int)y, -10);
+        count2++;
         
-        if ((count > 0) && (count < BRIDGE)){
-          for (i = (y-count); i<y; i++){
+        if (count >= BRIDGE) {
+          count2 = 0;
+          count = 0;
+          
+        } else if (count2 < MIN_BRIDGE) {
+          continue;
+          
+        } else if (count2 = MIN_BRIDGE) {
+          for (i = (y-count2-count); i<=y; i++){
             x = (radius-i*s)/c;
             newGrid->grid->setValue((int)x, (int)i, -10);
           }
+          count = 0;
+          
+        } else if (count > 0) {
+          for (i = (y-count); i<=y; i++){
+            x = (radius-i*s)/c;
+            newGrid->grid->setValue((int)x, (int)i, -10);
+          }
+          count = 0;
+          
+        } else {
+          newGrid->grid->setValue((int)x, (int)y, -10);
         }
-        count = 0;
+        
       } else {
         count++;
       }
