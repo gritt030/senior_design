@@ -58,8 +58,8 @@ void HoughGrid::addHoughPoint(int x, int y){
   double theta = 0.0;
   
   for (int i=0; i<HoughGrid::GRID_SIZE; i++) {
-    int r = (int)round((double)x*cos(theta) + (double)y*sin(theta));
-    r += Grid::GRID_SIZE;
+    int r = (int)round((double)(x-CENTER)*cos(theta) + (double)(y-CENTER)*sin(theta));
+    r += ADDITION;
     this->changeValue(i, r, (unsigned short)1);
     theta += D_THETA;
   }
@@ -70,8 +70,8 @@ void HoughGrid::addHoughPointWeighted(int x, int y, unsigned short weight){
   double theta = 0.0;
   
   for (int i=0; i<HoughGrid::GRID_SIZE; i++) {
-    int r = (int)round((double)x*cos(theta) + (double)y*sin(theta));
-    r += Grid::GRID_SIZE;
+    int r = (int)round((double)(x-CENTER)*cos(theta) + (double)(y-CENTER)*sin(theta));
+    r += ADDITION;
     this->changeValue(i, r, weight);
     theta += D_THETA;
   }
@@ -81,9 +81,12 @@ void HoughGrid::addHoughPointWeighted(int x, int y, unsigned short weight){
 void HoughGrid::findMaxima(){
   this->maxima1();
   this->maxima2();
+  
+  this->detectHist();
+  this->leastSquares();
 }
 
-
+//Get all local maxima
 void HoughGrid::maxima1(){
   HoughGrid* newGrid = new HoughGrid();
 
@@ -100,30 +103,12 @@ void HoughGrid::maxima1(){
       
       if (i == 0) {
         wx = HoughGrid::GRID_SIZE-1;
-        wy = 2*Grid::GRID_SIZE - j;
+        wy = 2*ADDITION - j;
       } else if (i == HoughGrid::GRID_SIZE - 1) {
         ex = 0;
-        ey = 2*Grid::GRID_SIZE - j;
+        ey = 2*ADDITION - j;
       }
       
-      int id = i*HoughGrid::GRID_SIZE;
-      int wd = wx*HoughGrid::GRID_SIZE;
-      int ed = ex*HoughGrid::GRID_SIZE;
-      int jd = j;
-      
-      cur = this->map[id+jd];
-      jd--;
-      nw = this->map[wd+jd];
-      ne = this->map[ed+jd];
-      n = this->map[id+jd];
-      jd+=2;
-      sw = this->map[wd+jd];
-      se = this->map[ed+jd];
-      s = this->map[id+jd];
-      w = this->map[wd+wy];
-      e = this->map[ed+ey];
-      
-      /*
       n = this->getValue(i,j-1);
       s = this->getValue(i,j+1);
       e = this->getValue(ex,ey);
@@ -133,7 +118,7 @@ void HoughGrid::maxima1(){
       sw = this->getValue(wx,j+1);
       se = this->getValue(ex,j+1);
       cur = this->getValue(i,j);
-      */
+      
       
       if ((cur>n) && (cur>s) && (cur>e) && (cur>w) && (cur>nw) && (cur>ne) && (cur>sw) && (cur>se)) {
         newGrid->setValue(i,j,cur);
@@ -148,6 +133,7 @@ void HoughGrid::maxima1(){
 }
 
 
+//get NUM_PEAKS highest maxima
 void HoughGrid::maxima2(){
   HoughGrid* newGrid = new HoughGrid();
   
@@ -160,7 +146,7 @@ void HoughGrid::maxima2(){
   
   for (int i=0; i<HoughGrid::GRID_SIZE; i++) {
     for (int j=0; j<HoughGrid::GRID_SIZE; j++) {
-      cur = this->map[i*HoughGrid::GRID_SIZE + j];
+      cur = this->map[i + j*HoughGrid::GRID_SIZE];
       if (cur > min) {
         valArr[mindex] = cur;
         xArr[mindex] = i;
@@ -201,3 +187,120 @@ int HoughGrid::submaxima1(unsigned short* valArr){
 }
 
 
+//get cardinal direction of building and save in global vars
+void HoughGrid::detectHist() {
+  int* hist = new int[360]();
+  int index = 1;
+  double curAngle = 0.0;
+  int curSum = 0;
+  int curNum = 0;
+  
+  for (int i=0; i<HoughGrid::GRID_SIZE; i++){
+    for (int j=0; j<HoughGrid::GRID_SIZE; j++){
+      unsigned short val = this->map[j*GRID_SIZE + i];
+      if (val != 0) {
+        curSum += val;
+        curNum++;
+      }
+    }
+    
+    curAngle += D_THETA;
+      
+      if ((curAngle * 57.29577951) >= ((float)index / 2.0)) {
+        if (curNum != 0) hist[index - 1] = curSum/curNum;
+        index++;
+        curSum = 0;
+        curNum = 0;
+      }
+  }
+  
+  int maxInd = 0;
+  int maxInd2 = 0;
+  
+  for (int i=1; i<360; i++){
+    if (hist[i] > hist[maxInd]) maxInd = i;
+  }
+  
+  //check points at +90 degrees
+  if (maxInd < 170) {
+    maxInd2 = maxInd + 170;
+    for (int i=(maxInd2 + 1); i<=(maxInd + 190); i++){
+      if (hist[i] > hist[maxInd2]) maxInd2 = i;
+    }
+  
+  //check points at -90 degrees
+  } else if (maxInd > 189) {
+    maxInd2 = maxInd - 190;
+    for (int i=(maxInd2 + 1); i<=(maxInd - 170); i++){
+      if (hist[i] > hist[maxInd2]) maxInd2 = i;
+    }
+  
+  //check points at both ends of hist
+  } else {
+    for (int i=1; i<=(maxInd-170); i++){
+      if (hist[i] > hist[maxInd2]) maxInd2 = i;
+    }
+    
+    for (int i=(maxInd+170); i<360; i++){
+      if (hist[i] > hist[maxInd2]) maxInd2 = i;
+    }
+  }
+  
+  //save cardinal directions
+  if ((maxInd > 90) && (maxInd < 270)) {
+    X_Cardinal = (double)maxInd * 0.0087266463;
+    Y_Cardinal = (double)maxInd2 * 0.0087266463;
+  } else {
+    X_Cardinal = (double)maxInd2 * 0.0087266463;
+    Y_Cardinal = (double)maxInd * 0.0087266463;
+  }
+  
+  delete[] hist;
+}
+
+
+void HoughGrid::leastSquares(){
+  int cur;
+  int thetaSum=0, radiusSum=0, weightSum=0, num=0;
+  int sumT=0, sumR=0;
+
+  for (int i=0; i<HoughGrid::GRID_SIZE-10; i+=10) {
+    for (int j=0; j<HoughGrid::GRID_SIZE-10; j+=10) {
+
+      for (int k=0; k<10; k++) {
+        for (int m=0; m<10; m++) {
+          cur = (int)this->map[(i+k) + (j+m)*HoughGrid::GRID_SIZE];
+        
+          if (cur > 0) {
+            thetaSum += (i+k)*cur;
+            sumT += (i+k);
+            radiusSum += (j+m)*cur;
+            sumR += (j+m);
+            weightSum += cur;
+            num++;
+            this->map[(i+k) + (j+m)*HoughGrid::GRID_SIZE] = 0;
+          }
+        }
+      }
+      if (num > 0) {
+        /*
+        std::cout << thetaSum << " ";
+        std::cout << radiusSum << " ";
+        std::cout << weightSum << " ";
+        std::cout << num << " ";
+        std::cout << " " << sumT << " ";
+        std::cout << sumR << std::endl;
+        */
+        thetaSum /= (weightSum);
+        radiusSum /= (weightSum);
+        this->map[thetaSum + radiusSum*GRID_SIZE] = 60000;
+      }
+      thetaSum = 0;
+      radiusSum = 0;
+      weightSum = 0;
+      sumT=0;
+      sumR=0;
+      num = 0;
+    }
+  }
+}

@@ -9,13 +9,18 @@
 class HoughGrid
 {
   public:
-    static const int GRID_SIZE = (int)((float)Grid::GRID_SIZE * 1.414213562f) + Grid::GRID_SIZE + 1;   //size of one side of the grid
+    static const int GRID_SIZE = (int)((float)Grid::GRID_SIZE * 1.414213562f) + 1;// + Grid::GRID_SIZE;   //size of one side of the grid
+    static const int CENTER = Grid::GRID_SIZE/2;
+    static const int ADDITION = (int)((float)Grid::GRID_SIZE * 0.7071067812);
     static const unsigned short MAX_VALUE = 65535;  //maximum value we can have in a grid square
     //static const int DISTANCE = 2;  //separation of peaks
-    static const int NUM_PEAKS = 150;   //number of peaks to find
+    static const int NUM_PEAKS = 250;   //number of peaks to find
     unsigned short *map;                          //occupancy grid for this node
     
     double D_THETA;
+    
+    //theta used for cardinal directions
+    double X_Cardinal, Y_Cardinal;
     
     //constructor/destructor
     HoughGrid();
@@ -33,6 +38,8 @@ class HoughGrid
     void maxima1();
     void maxima2();
     int submaxima1(unsigned short* valArr);
+    void detectHist();
+    void leastSquares();
 };
 
 #endif // HOUGHGRID_H

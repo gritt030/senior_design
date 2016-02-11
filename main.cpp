@@ -199,7 +199,7 @@ int main(int argc, char **argv) {
   o1->sendHoughToImage(rawImg);
   //o1->sendToImage(occImg, 0,0);
   hough->sendToImage(sorImg, 0,0);
-  //o1->sendHoughMaximaToImage(navImg);
+  o1->sendHoughMaximaToImage(navImg);
   //o2->sendToImage(sorImg);
   //g->sendToImage(rawImg);
   //g->cleanFrontier();
