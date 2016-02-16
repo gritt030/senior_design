@@ -19,6 +19,7 @@ public:
   static const int SONAR_MAX = 325;    //maximum range on sonar (not based on scale)
   
   SonarArchive();
+  ~SonarArchive();
   void addSonarScan(int* sonarDists, double x, double y, double xErr, double yErr, double head, double headErr);
   OccupancyGrid* generateMap();
   OccupancyGrid* generateMapWalls();

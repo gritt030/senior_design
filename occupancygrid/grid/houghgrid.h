@@ -15,6 +15,11 @@ class HoughGrid
     static const unsigned short MAX_VALUE = 65535;  //maximum value we can have in a grid square
     //static const int DISTANCE = 2;  //separation of peaks
     static const int NUM_PEAKS = 250;   //number of peaks to find
+    
+    //size of boxes to use for least squares
+    static const int LS_RADIUS = 10;
+    static const int LS_ANGLE = 10;
+    
     unsigned short *map;                          //occupancy grid for this node
     
     double D_THETA;

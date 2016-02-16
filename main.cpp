@@ -90,6 +90,15 @@ int main(int argc, char **argv) {
   //*/
   
   
+  //Stuff for straightening maps
+  for (int i=0; i<0; i++) r->updateCoordsFile();
+  double origXcard = -1.0;
+  double origYcard = -1.0;
+  int counter = 100;
+  SonarScan* scans = nullptr;
+  SonarArchive* a2 = new SonarArchive();
+  
+  
   
   //for (int i=0; i<200; i++) r->updateCoordsFile();
   for (int i=0; i<4000; i++){
@@ -141,6 +150,88 @@ int main(int argc, char **argv) {
     
     a->addSonarScan(sonarDists, rawPos[0], rawPos[1], distX/100.0, distY/100.0, heading, angle);
     
+    //stuff for hough alignment
+    SonarScan* s = new SonarScan();
+    s->w = sonarDists[0];
+    s->nw = sonarDists[1];
+    s->ne = sonarDists[2];
+    s->e = sonarDists[3];
+    s->x = rawPos[0];
+    s->y = rawPos[1];
+    s->xErr = distX/100.0;
+    s->yErr = distY/100.0;
+    s->heading = heading;
+    s->headErr = angle;
+    s->previous = scans;
+    scans = s;
+    counter--;
+    
+    if (counter == 0) {
+      OccupancyGrid* ocg = a->generateMapNoBlur();
+      OccupancyGrid* hgh = ocg->generateHoughMap();
+      if (hgh->Y_Cardinal > 1.5) hgh->Y_Cardinal -= 3.141592654;
+      delete a;
+      a = new SonarArchive();
+            
+      if (origXcard < 0) {
+        std::cout << "set: \n";
+        origXcard = hgh->X_Cardinal;
+        origYcard = hgh->Y_Cardinal;
+        std::cout << "    " << origXcard << std::endl;
+        std::cout << "    " << origYcard << std::endl;
+        ocg->sendToImage(navImg, 0,0);
+        hgh->sendToImage(rawImg, 0,0);
+      } else {
+        double hdErr = (hgh->X_Cardinal) - origXcard;
+        hdErr += (hgh->Y_Cardinal) - origYcard;
+        hdErr /= 2.0;
+        double co = cos(hdErr);
+        double si = sin(hdErr);
+        double x2, y2;
+        std::cout << "  " << hgh->X_Cardinal << ", " << hgh->Y_Cardinal << ", " << hdErr << std::endl;
+        s = scans;
+        while (s != nullptr){
+          s->heading += hdErr;
+          x2 = (s->x)*co - (s->y)*si;
+          y2 = (s->x)*si + (s->y)*co;
+          s->x = x2;
+          s->y = y2;
+          s = s->previous;
+        }
+      }
+        
+        s = scans;
+        SonarScan* t;
+        while (scans != nullptr){
+          t = scans->previous;
+          if (t != nullptr) {
+            while (t->previous != nullptr) {
+              s = s->previous;
+              t = t->previous;
+            }
+          } else {
+            t = s;
+            scans = nullptr;
+          }
+          
+          int* ssd = new int[4];
+          ssd[0] = t->w;
+          ssd[1] = t->nw;
+          ssd[2] = t->ne;
+          ssd[3] = t->e;
+          a2->addSonarScan(ssd, t->x, t->y, t->xErr, t->yErr, t->heading, t->headErr);
+          delete[] ssd;
+          s->previous = nullptr;
+          s = scans;
+          delete t;
+        }
+      
+      counter = 100;
+      delete ocg;
+      delete hgh;
+    }
+    
+    
     /*
     OccupancyGrid *oo = a->generateMapNoBlur();
     char* name = new char[128];
@@ -169,10 +260,11 @@ int main(int argc, char **argv) {
   }
   
   std::cout << "Generating occupancy grid..." << std::endl;
-  OccupancyGrid* o1 = a->generateMapNoBlur();
+  OccupancyGrid* o1 = a2->generateMapNoBlur();
   
   std::cout << "Generating hough map..." << std::endl;
   OccupancyGrid* hough = o1->generateHoughMap();
+  
   //OccupancyGrid* o1 = a->generateMapReference();
   
   /*
@@ -196,10 +288,10 @@ int main(int argc, char **argv) {
   
   std::cout << "Image" << std::endl;
   //o1->cleanFrontier();
-  o1->sendHoughToImage(rawImg);
-  //o1->sendToImage(occImg, 0,0);
+  //o1->sendHoughToImage(rawImg);
+  o1->sendToImage(occImg, 0,0);
   hough->sendToImage(sorImg, 0,0);
-  o1->sendHoughMaximaToImage(navImg);
+  //o1->sendHoughMaximaToImage(navImg);
   //o2->sendToImage(sorImg);
   //g->sendToImage(rawImg);
   //g->cleanFrontier();

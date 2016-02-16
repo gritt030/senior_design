@@ -30,8 +30,14 @@ OccupancyGrid* OccupancyGrid::generateHoughMap(){
   return g;
 }
 
+
 void OccupancyGrid::traceHoughWalls(OccupancyGrid* newGrid, HoughGrid* hough){
   hough->findMaxima();
+  
+  newGrid->X_Cardinal = hough->X_Cardinal;
+  newGrid->Y_Cardinal = hough->Y_Cardinal;
+  
+  this->traceCardinalDirections(hough->X_Cardinal, hough->Y_Cardinal, newGrid);
     
   double theta;
   int radius;
@@ -45,8 +51,6 @@ void OccupancyGrid::traceHoughWalls(OccupancyGrid* newGrid, HoughGrid* hough){
       }
     }
   }
-  
-  this->traceCardinalDirections(hough->X_Cardinal, hough->Y_Cardinal, newGrid);
 }
 
 
@@ -61,7 +65,6 @@ void OccupancyGrid::traceHoughLine(double radius, double theta, OccupancyGrid* n
   if ((theta > 0.7853981634) && (theta < 2.35619449)) {
     for (x=0; x<Grid::GRID_SIZE; x++){
       y = (radius-(x-HoughGrid::CENTER)*c)/s + HoughGrid::CENTER;
-      //newGrid->grid->setValue((int)x, (int)y, -10); //TODO:remove
       
       if (this->grid->getValue((int)x, (int)y) < 0) {
         count2++;
@@ -100,7 +103,6 @@ void OccupancyGrid::traceHoughLine(double radius, double theta, OccupancyGrid* n
   } else {
     for (y=0; y<Grid::GRID_SIZE; y++){
       x = (radius-(y-HoughGrid::CENTER)*s)/c + HoughGrid::CENTER;
-      //newGrid->grid->setValue((int)x, (int)y, -10); //TODO:remove
       
       if (this->grid->getValue((int)x, (int)y) < 0) {
         count2++;

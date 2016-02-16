@@ -255,6 +255,8 @@ void HoughGrid::detectHist() {
     Y_Cardinal = (double)maxInd * 0.0087266463;
   }
   
+  //std::cout << maxInd/2 << " " << maxInd2/2 << std::endl;
+  
   delete[] hist;
 }
 
@@ -262,23 +264,25 @@ void HoughGrid::detectHist() {
 void HoughGrid::leastSquares(){
   int cur;
   int thetaSum=0, radiusSum=0, weightSum=0, num=0;
-  int sumT=0, sumR=0;
+  int t,r, index;
 
-  for (int i=0; i<HoughGrid::GRID_SIZE-10; i+=10) {
-    for (int j=0; j<HoughGrid::GRID_SIZE-10; j+=10) {
+  for (int i=0; i<GRID_SIZE; i+=LS_ANGLE) {
+    for (int j=0; j<GRID_SIZE; j+=LS_RADIUS) {
 
-      for (int k=0; k<10; k++) {
-        for (int m=0; m<10; m++) {
-          cur = (int)this->map[(i+k) + (j+m)*HoughGrid::GRID_SIZE];
+      for (int k=0; k<LS_ANGLE; k++) {
+        for (int m=0; m<LS_RADIUS; m++) {
+          t = (i+k);
+          r = (j+m);
+          index = (t % GRID_SIZE) + (r % GRID_SIZE)*GRID_SIZE;
+          
+          cur = (int)this->map[index];
         
           if (cur > 0) {
-            thetaSum += (i+k)*cur;
-            sumT += (i+k);
-            radiusSum += (j+m)*cur;
-            sumR += (j+m);
+            thetaSum += t*cur;
+            radiusSum += r*cur;
             weightSum += cur;
             num++;
-            this->map[(i+k) + (j+m)*HoughGrid::GRID_SIZE] = 0;
+            this->map[index] = 0;
           }
         }
       }
@@ -293,13 +297,11 @@ void HoughGrid::leastSquares(){
         */
         thetaSum /= (weightSum);
         radiusSum /= (weightSum);
-        this->map[thetaSum + radiusSum*GRID_SIZE] = 60000;
+        this->map[(thetaSum % GRID_SIZE) + (radiusSum % GRID_SIZE)*GRID_SIZE] = weightSum;
       }
       thetaSum = 0;
       radiusSum = 0;
       weightSum = 0;
-      sumT=0;
-      sumR=0;
       num = 0;
     }
   }

@@ -5,6 +5,15 @@
 //constructor
 SonarArchive::SonarArchive(){}
 
+SonarArchive::~SonarArchive(){
+  SonarScan* cur;
+  while (this->prevScan != nullptr){
+    cur = this->prevScan;
+    this->prevScan = this->prevScan->previous;
+    delete cur;
+  }
+}
+
 
 void SonarArchive::addSonarScan(int* sonarDists, double x, double y, double xErr, double yErr, double head, double headErr){
   SonarScan* scan = new SonarScan();
