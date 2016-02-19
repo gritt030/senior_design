@@ -32,9 +32,21 @@ void SonarArchive::addSonarScan(int* sonarDists, double x, double y, double xErr
   this->prevScan = scan;
   
   if (scan->previous == nullptr) return;
-  if (scan->previous->xErr < scan->xErr) this->propagateXPosError();
-  if (scan->previous->yErr < scan->yErr) this->propagateYPosError();
-  if (scan->previous->headErr < scan->headErr) this->propagateHeadError();
+  
+  //TODO: uncomment these in final code if needed
+  //if (scan->previous->xErr < scan->xErr) this->propagateXPosError();
+  //if (scan->previous->yErr < scan->yErr) this->propagateYPosError();
+  //if (scan->previous->headErr < scan->headErr) this->propagateHeadError();
+}
+
+
+//removes the first sonar scan added to the archive
+void SonarArchive::removeSonarScan(){
+  this->reverseScans();
+  SonarScan* fst = this->prevScan;
+  this->prevScan = fst->previous;
+  delete fst;
+  this->reverseScans();
 }
 
 

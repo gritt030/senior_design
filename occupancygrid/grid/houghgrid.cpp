@@ -191,10 +191,12 @@ int HoughGrid::submaxima1(unsigned short* valArr){
 void HoughGrid::detectHist() {
   int* hist = new int[360]();
   int index = 1;
+  int theta;
   double curAngle = 0.0;
   int curSum = 0;
   int curNum = 0;
   
+  //generate histogram inside hist
   for (int i=0; i<HoughGrid::GRID_SIZE; i++){
     for (int j=0; j<HoughGrid::GRID_SIZE; j++){
       unsigned short val = this->map[j*GRID_SIZE + i];
@@ -215,44 +217,52 @@ void HoughGrid::detectHist() {
   }
   
   int maxInd = 0;
-  int maxInd2 = 0;
   
+  //find maximum in maxInd
   for (int i=1; i<360; i++){
     if (hist[i] > hist[maxInd]) maxInd = i;
   }
   
-  //check points at +90 degrees
-  if (maxInd < 170) {
-    maxInd2 = maxInd + 170;
-    for (int i=(maxInd2 + 1); i<=(maxInd + 190); i++){
-      if (hist[i] > hist[maxInd2]) maxInd2 = i;
-    }
+  int index2;
+  int histWeight1 = 0;
+  int histWeight2 = 0;
+  int thetaWeight1 = 0;
+  int thetaWeight2 = 0;
   
-  //check points at -90 degrees
-  } else if (maxInd > 189) {
-    maxInd2 = maxInd - 190;
-    for (int i=(maxInd2 + 1); i<=(maxInd - 170); i++){
-      if (hist[i] > hist[maxInd2]) maxInd2 = i;
-    }
-  
-  //check points at both ends of hist
-  } else {
-    for (int i=1; i<=(maxInd-170); i++){
-      if (hist[i] > hist[maxInd2]) maxInd2 = i;
+  for (int i=(maxInd-10); i<=(maxInd+10); i++) {
+    if (i < 0) {
+      index = i+360;
+      index2 = index - 180;
+    } else {
+      index = i % 360;
+      index2 = (i + 180) % 360;
     }
     
-    for (int i=(maxInd+170); i<360; i++){
-      if (hist[i] > hist[maxInd2]) maxInd2 = i;
-    }
+    histWeight1 += hist[index];
+    histWeight2 += hist[index2];
+    thetaWeight1 += i*hist[index];
+    thetaWeight2 += i*hist[index2];
+    
   }
   
+  //make sure that there were actually peaks in the hough transform
+  if ((histWeight1 + histWeight2) == 0) {
+    X_Cardinal = 1.570796327;
+    Y_Cardinal = 0.0;
+    delete[] hist;
+    return;
+  }
+  
+  //least squares for finding best cardinal direction fit
+  theta = (thetaWeight1 + thetaWeight2) / (histWeight1 + histWeight2);
+  
   //save cardinal directions
-  if ((maxInd > 90) && (maxInd < 270)) {
-    X_Cardinal = (double)maxInd * 0.0087266463;
-    Y_Cardinal = (double)maxInd2 * 0.0087266463;
+  if ((theta > 90) && (theta < 270)) {
+    X_Cardinal = (double)theta * 0.0087266463;
+    Y_Cardinal = (double)((theta + 180) % 360) * 0.0087266463;
   } else {
-    X_Cardinal = (double)maxInd2 * 0.0087266463;
-    Y_Cardinal = (double)maxInd * 0.0087266463;
+    X_Cardinal = (double)((theta + 180) % 360) * 0.0087266463;
+    Y_Cardinal = (double)theta * 0.0087266463;
   }
   
   //std::cout << maxInd/2 << " " << maxInd2/2 << std::endl;

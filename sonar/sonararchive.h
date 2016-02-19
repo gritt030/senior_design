@@ -21,6 +21,7 @@ public:
   SonarArchive();
   ~SonarArchive();
   void addSonarScan(int* sonarDists, double x, double y, double xErr, double yErr, double head, double headErr);
+  void removeSonarScan();
   OccupancyGrid* generateMap();
   OccupancyGrid* generateMapWalls();
   OccupancyGrid* generateMapSorted();
