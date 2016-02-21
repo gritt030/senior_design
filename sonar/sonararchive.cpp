@@ -450,8 +450,37 @@ OccupancyGrid* SonarArchive::generateMapReference(){
 }
 
 
+void SonarArchive::shiftScans(){
+  this->reverseScans();
+  double px = 0;
+  double py = 0;
+  double ph = 0;
+  double cx, cy, ch;
+  
+  SonarScan* cur = this->prevScan;
+  
+  while (cur != nullptr) {
+    cx = cur->x;
+    cy = cur->y;
+    ch = cur->heading;
+    cur->x = px;
+    cur->y = py;
+    cur->heading = ph;
+    px = cx;
+    py = cy;
+    ph = ch;
+    cur = cur->previous;
+  }
+  
+  this->reverseScans();
+}
+
+
 OccupancyGrid* SonarArchive::generateMapNoBlur(){
   this->reverseScans();
+  
+  int xp = 0;
+  int yp = 0;
   
   OccupancyGrid* output = new OccupancyGrid();
   int* buf = new int[8];

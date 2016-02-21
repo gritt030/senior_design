@@ -83,7 +83,7 @@ void HoughGrid::findMaxima(){
   this->maxima2();
   
   this->detectHist();
-  this->leastSquares();
+  //this->leastSquares();
 }
 
 //Get all local maxima
@@ -120,7 +120,11 @@ void HoughGrid::maxima1(){
       cur = this->getValue(i,j);
       
       
-      if ((cur>n) && (cur>s) && (cur>e) && (cur>w) && (cur>nw) && (cur>ne) && (cur>sw) && (cur>se)) {
+//       if ((cur>n) && (cur>s) && (cur>e) && (cur>w) && (cur>nw) && (cur>ne) && (cur>sw) && (cur>se)) {
+//         newGrid->setValue(i,j,cur);
+//       }
+      
+      if ((cur>=n) && (cur>=s) && (cur>=e) && (cur>=w) && (cur>=nw) && (cur>=ne) && (cur>=sw) && (cur>=se)) {
         newGrid->setValue(i,j,cur);
       }
     }

@@ -72,12 +72,13 @@ int main(int argc, char **argv) {
   double YDrift = 0.0;
   
   int index = 0;
-  char* name = new char[128];
+  char* name = new char[256];
   
-  std::srand(std::time(nullptr));
+  //std::srand(std::time(nullptr));
   int num = 0;
   
   
+  /*
   //Stuff for straightening maps
   //for (int i=0; i<0; i++) r->updateCoordsFile();
   double origXcard = -1.0;
@@ -144,7 +145,6 @@ int main(int argc, char **argv) {
   //delete hgh;
   
   
-  
   SonarScan* s;
   ocg = a->generateMapNoBlur();
   hgh = ocg->generateHoughMap();
@@ -180,7 +180,7 @@ int main(int argc, char **argv) {
   //3577, 1633
   std::cout << "Secondary loop...\n";
   //straightening secondary loop
-  for (int i=0; i<3577; i++){
+  for (int i=0; i<300; i++){
     l->triggerUpdate();
     l->getPosition(drone);
     l->getWSonarPosition(weson);
@@ -292,7 +292,7 @@ int main(int argc, char **argv) {
   hg->sendToImage(sorImg, 0,0);
   //eternalHough->sendToImage(navImg, 0,0);
   std::cout << "Done!" << std::endl;
-  return 0;
+  return 0; //*/
   
   
   
@@ -302,8 +302,8 @@ int main(int argc, char **argv) {
   
   
   /////Normal main loop /////
-  //for (int i=0; i<200; i++) r->updateCoordsFile();
-  for (int i=0; i<4000; i++){
+  //for (int i=0; i<450; i++) r->updateCoordsFile();
+  for (int i=0; i<3000; i++){
     //std::cout << "---- " << i << " ----" << std::endl;
     l->triggerUpdate();
     
@@ -321,6 +321,11 @@ int main(int argc, char **argv) {
     prevLoc[0] = rawPos[0];
     prevLoc[1] = rawPos[1];
     
+//     sonarDists[0] = 0;
+//     sonarDists[1] = 0;
+//     sonarDists[2] = 0;
+//     sonarDists[3] = 0;
+    
     /*
     std::cout << sonarDists[0] << ",";
     std::cout << sonarDists[1] << ",";
@@ -334,9 +339,17 @@ int main(int argc, char **argv) {
     distA += sqrt((heading-prevAngle)*(heading-prevAngle));
     //angle = distA/1000.0 + 0.25;    //0.25
     angle = 0.17;
+    angle = 0.1;
     prevAngle = heading;
     
     a->addSonarScan(sonarDists, rawPos[0], rawPos[1], distX/100.0, distY/100.0, heading, angle);
+    
+//     if (i%1 == 0){
+//       sprintf(name, "/home/owner/pics/pics/sequence/p%07d.png", i);
+//       OccupancyGrid* grd = a->generateMapNoBlur();
+//       grd->sendToImage(name, rawPos[0]/10, rawPos[1]/10);
+//       delete grd;
+//     }
     
     
     /*
@@ -395,10 +408,10 @@ int main(int argc, char **argv) {
   
   std::cout << "Image" << std::endl;
   //o1->cleanFrontier();
-  //o1->sendHoughToImage(rawImg);
+  o1->sendHoughToImage(rawImg);
   o1->sendToImage(occImg, 0,0);
   hough->sendToImage(sorImg, 0,0);
-  //o1->sendHoughMaximaToImage(navImg);
+  o1->sendHoughMaximaToImage(navImg);
   //o2->sendToImage(sorImg);
   //g->sendToImage(rawImg);
   //g->cleanFrontier();

@@ -29,6 +29,8 @@ public:
   OccupancyGrid* generateMapNoBlur();
   OccupancyGrid* generateMapReference();
   
+  void shiftScans();
+  
   void sortScans();
   void sortScansX();
   void sortScansY();

@@ -17,8 +17,8 @@ class HoughGrid
     static const int NUM_PEAKS = 250;   //number of peaks to find
     
     //size of boxes to use for least squares
-    static const int LS_RADIUS = 10;
-    static const int LS_ANGLE = 10;
+    static const int LS_RADIUS = 15;
+    static const int LS_ANGLE = 51;//10;
     
     unsigned short *map;                          //occupancy grid for this node
     
