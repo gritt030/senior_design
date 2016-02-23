@@ -66,6 +66,30 @@ void HoughGrid::addHoughPoint(int x, int y){
 }
 
 
+void HoughGrid::removeHoughPoint(int x, int y){
+  double theta = 0.0;
+  
+  for (int i=0; i<HoughGrid::GRID_SIZE; i++) {
+    int r = (int)round((double)(x-CENTER)*cos(theta) + (double)(y-CENTER)*sin(theta));
+    r += ADDITION;
+    
+      //bounds checking
+    if ((i<0) || (r<0) || (i>=HoughGrid::GRID_SIZE) || (r>=HoughGrid::GRID_SIZE)) {
+      return;
+    }
+  
+    //int index = y*HoughGrid::GRID_SIZE + x;
+    unsigned short current = this->map[r*HoughGrid::GRID_SIZE + i];
+    unsigned short next = current - 1;
+    
+    if (next > current) this->map[r*HoughGrid::GRID_SIZE + i] = 0;
+    else this->map[r*HoughGrid::GRID_SIZE + i] = next;
+    
+    theta += D_THETA;
+  }
+}
+
+
 void HoughGrid::addHoughPointWeighted(int x, int y, unsigned short weight){
   double theta = 0.0;
   

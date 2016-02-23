@@ -90,7 +90,7 @@ int main(int argc, char **argv) {
   
   std::cout << "Initial loop...\n";
   //straightening initial loop
-  for (int i=0; i<200; i++){
+  for (int i=0; i<1000; i++){
     l->triggerUpdate();
     l->getPosition(drone);
     l->getWSonarPosition(weson);
@@ -156,7 +156,7 @@ int main(int argc, char **argv) {
   SonarScan* t = scans;
   s = scans;
   
-  for (int i=0; i<200; i++){
+  for (int i=0; i<1000; i++){
     t->heading += hdErr;
     x2 = (t->x)*co - (t->y)*si;
     y2 = (t->x)*si + (t->y)*co;
@@ -171,6 +171,7 @@ int main(int argc, char **argv) {
     a2->addSonarScan(ssd, t->x, t->y, t->xErr, t->yErr, t->heading, t->headErr);
     t = t->previous;
   }
+  scans = nullptr;
   delete ocg;
   delete hgh;
   
@@ -223,9 +224,9 @@ int main(int argc, char **argv) {
     if (counter == 0) {
       OccupancyGrid* ocg = a2->generateMapNoBlur();
       OccupancyGrid* hgh = ocg->generateHoughMap();
-      std::sprintf(name, "/home/owner/pics/pics/hough/p%07d.png", i);
+      std::sprintf(name, "/home/owner/pics/pics/sequence/p%07d.png", i);
       hgh->sendToImage(name, 0,0);
-      std::sprintf(name, "/home/owner/pics/pics/map/r%07d.png", i);
+      std::sprintf(name, "/home/owner/pics/pics/sequence/r%07d.png", i);
       ocg->sendToImage(name, 0,0);
       origXcard = hgh->X_Cardinal;
       origYcard = hgh->Y_Cardinal;
@@ -289,7 +290,7 @@ int main(int argc, char **argv) {
   
   std::cout << "Image" << std::endl;
   og->sendToImage(occImg, 0,0);
-  hg->sendToImage(sorImg, 0,0);
+  hg->sendToImage(navImg, 0,0);
   //eternalHough->sendToImage(navImg, 0,0);
   std::cout << "Done!" << std::endl;
   return 0; //*/
@@ -301,9 +302,234 @@ int main(int argc, char **argv) {
   
   
   
+  
+  /*
+  for (int i=0; i<500; i++) r->updateCoordsFile();
+  //Stuff for straightening maps VERSION 2
+  //for (int i=0; i<0; i++) r->updateCoordsFile();
+  double origXcard = -1.0;
+  double origYcard = -1.0;
+  int counter = 10;
+  SonarScan* scans = nullptr;
+  SonarArchive* a2 = new SonarArchive();
+  
+  int initialSize = 300;
+  
+  std::cout << "Initial loop...\n";
+  //straightening initial loop
+  for (int i=0; i<initialSize; i++){
+    l->triggerUpdate();
+    l->getPosition(drone);
+    l->getWSonarPosition(weson);
+    l->getESonarPosition(eason);
+    l->getNWSonarPosition(nwson);
+    l->getNESonarPosition(neson);
+    l->getSonarInRange(range);
+    l->getRawSonarDists(sonarDists);
+    l->getRawPosition(rawPos);
+    distX += sqrt((rawPos[0]-prevLoc[0])*(rawPos[0]-prevLoc[0]));
+    distY += sqrt((rawPos[1]-prevLoc[1])*(rawPos[1]-prevLoc[1]));
+    prevLoc[0] = rawPos[0];
+    prevLoc[1] = rawPos[1];
+    double angle1 = atan2(nwson[1]-drone[1], nwson[0]-drone[0]);
+    double angle2 = atan2(neson[1]-drone[1], neson[0]-drone[0]);
+    heading = (angle1 + angle2)/2.0;
+    if (prevAngle == 0.0) prevAngle = heading;
+    distA += sqrt((heading-prevAngle)*(heading-prevAngle));
+    angle = 0.17;
+    prevAngle = heading;
+    a->addSonarScan(sonarDists, rawPos[0], rawPos[1], distX/100.0, distY/100.0, heading, angle);
+    //a2->addSonarScan(sonarDists, rawPos[0], rawPos[1], distX/100.0, distY/100.0, heading, angle);
+    
+    SonarScan* s = new SonarScan();
+    s->w = sonarDists[0];
+    s->nw = sonarDists[1];
+    s->ne = sonarDists[2];
+    s->e = sonarDists[3];
+    s->x = rawPos[0];
+    s->y = rawPos[1];
+    s->xErr = distX/100.0;
+    s->yErr = distY/100.0;
+    s->heading = heading;
+    s->headErr = angle;
+    s->previous = scans;
+    scans = s;
+    
+    r->updateCoordsFile();
+  }
+  
+  std::cout << "Middle loop...\n";
+  //stuff used for straightening
+  OccupancyGrid* ocg = new OccupancyGrid();
+  a->addPath(ocg);
+  OccupancyGrid* hgh = ocg->generateHoughMap();
+  std::cout << "set: \n";
+  origXcard = hgh->X_Cardinal;
+  origYcard = hgh->Y_Cardinal;
+  std::cout << "    " << origXcard << std::endl;
+  std::cout << "    " << origYcard << std::endl;
+  delete ocg;
+  delete hgh;
+  
+  
+  SonarScan* s;
+  ocg = new OccupancyGrid();
+  a->addPath(ocg);
+  hgh = ocg->generateHoughMap();
+  double hdErr = (hgh->X_Cardinal) - 1.570796327;//origXcard;
+  double co = cos(hdErr);
+  double si = sin(hdErr);
+  double x2, y2;
+      
+  SonarScan* t = scans;
+  s = scans;
+  
+  for (int i=0; i<initialSize; i++){
+    t->heading += hdErr;
+    x2 = (t->x)*co - (t->y)*si;
+    y2 = (t->x)*si + (t->y)*co;
+    t->x = x2;
+    t->y = y2;
+    
+    int* ssd = new int[4];
+    ssd[0] = t->w;
+    ssd[1] = t->nw;
+    ssd[2] = t->ne;
+    ssd[3] = t->e;
+    a2->addSonarScan(ssd, t->x, t->y, t->xErr, t->yErr, t->heading, t->headErr);
+    t = t->previous;
+  }
+  scans = nullptr;
+  delete ocg;
+  delete hgh;
+  
+  
+  
+  
+  //3577, 1633
+  std::cout << "Secondary loop...\n";
+  //straightening secondary loop
+  for (int i=0; i<700; i++){
+    l->triggerUpdate();
+    l->getPosition(drone);
+    l->getWSonarPosition(weson);
+    l->getESonarPosition(eason);
+    l->getNWSonarPosition(nwson);
+    l->getNESonarPosition(neson);
+    l->getSonarInRange(range);
+    l->getRawSonarDists(sonarDists);
+    l->getRawPosition(rawPos);
+    distX += sqrt((rawPos[0]-prevLoc[0])*(rawPos[0]-prevLoc[0]));
+    distY += sqrt((rawPos[1]-prevLoc[1])*(rawPos[1]-prevLoc[1]));
+    prevLoc[0] = rawPos[0];
+    prevLoc[1] = rawPos[1];
+    double angle1 = atan2(nwson[1]-drone[1], nwson[0]-drone[0]);
+    double angle2 = atan2(neson[1]-drone[1], neson[0]-drone[0]);
+    heading = (angle1 + angle2)/2.0;
+    if (prevAngle == 0.0) prevAngle = heading;
+    distA += sqrt((heading-prevAngle)*(heading-prevAngle));
+    angle = 0.17;
+    prevAngle = heading;
+    a->removeSonarScan();
+    a->addSonarScan(sonarDists, rawPos[0], rawPos[1], distX/100.0, distY/100.0, heading, angle);
+    
+    //stuff for hough alignment
+    SonarScan* s = new SonarScan();
+    s->w = sonarDists[0];
+    s->nw = sonarDists[1];
+    s->ne = sonarDists[2];
+    s->e = sonarDists[3];
+    s->x = rawPos[0];
+    s->y = rawPos[1];
+    s->xErr = distX/100.0;
+    s->yErr = distY/100.0;
+    s->heading = heading;
+    s->headErr = angle;
+    s->previous = scans;
+    scans = s;
+    counter--;
+    
+    if (counter == 0) {
+      ocg = new OccupancyGrid();
+      a->addPath(ocg);
+      hgh = ocg->generateHoughMap();
+      std::sprintf(name, "/home/owner/pics/pics/sequence/r%07d.png", i);
+      hgh->sendToImage(name, 0,0);
+      std::sprintf(name, "/home/owner/pics/pics/sequence/p%07d.png", i);
+      ocg->sendToImage(name, 0,0);
+      double hdErr = (hgh->X_Cardinal) - 1.570796327;//origXcard;
+      double co = cos(hdErr);
+      double si = sin(hdErr);
+      double x2, y2;
+      std::cout << i << ":  " << hgh->X_Cardinal << ", " << hgh->Y_Cardinal << ", " << hdErr << std::endl;
+      
+      SonarScan* t = scans;
+      s = scans;
+      
+      while (t != nullptr) {        
+        while (t->previous != nullptr){
+          s = t;
+          t = t->previous;
+        }
+        t->heading += hdErr;
+        x2 = (t->x)*co - (t->y)*si;
+        y2 = (t->x)*si + (t->y)*co;
+        t->x = x2;
+        t->y = y2;
+        
+        int* ssd = new int[4];
+        ssd[0] = t->w;
+        ssd[1] = t->nw;
+        ssd[2] = t->ne;
+        ssd[3] = t->e;
+        a2->addSonarScan(ssd, t->x, t->y, t->xErr, t->yErr, t->heading, t->headErr);
+        
+        if (s->previous == nullptr){
+          scans = nullptr;
+        } else {
+          s->previous = nullptr;
+        }
+        
+        delete t;
+        delete[] ssd;
+        t = scans;
+        s = scans;
+      }
+      
+      delete ocg;
+      delete hgh;
+      counter = 10;
+    }
+    
+    r->updateCoordsFile();
+  }
+  
+  std::cout << "Generating occupancy grid..." << std::endl;
+  OccupancyGrid* og = a2->generateMapNoBlur();
+  
+  std::cout << "Generating hough map..." << std::endl;
+  OccupancyGrid* hg = og->generateHoughMap();
+  
+  std::cout << "Image" << std::endl;
+  og->sendToImage(occImg, 0,0);
+  hg->sendToImage(navImg, 0,0);
+  //eternalHough->sendToImage(navImg, 0,0);
+  std::cout << "Done!" << std::endl;
+  return 0; //*/
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   /////Normal main loop /////
-  //for (int i=0; i<450; i++) r->updateCoordsFile();
-  for (int i=0; i<3000; i++){
+  //for (int i=0; i<900; i++) r->updateCoordsFile();
+  for (int i=0; i<1000; i++){
     //std::cout << "---- " << i << " ----" << std::endl;
     l->triggerUpdate();
     
@@ -339,7 +565,7 @@ int main(int argc, char **argv) {
     distA += sqrt((heading-prevAngle)*(heading-prevAngle));
     //angle = distA/1000.0 + 0.25;    //0.25
     angle = 0.17;
-    angle = 0.1;
+    angle = 0.27;
     prevAngle = heading;
     
     a->addSonarScan(sonarDists, rawPos[0], rawPos[1], distX/100.0, distY/100.0, heading, angle);
@@ -379,11 +605,25 @@ int main(int argc, char **argv) {
     //*/
   }
   
+//   for (int i=0; i<100; i++){
+//     OccupancyGrid* o1 = a->generateMapNoBlur();
+//     std::sprintf(name, "/home/owner/pics/pics/sequence/p%07d.png", i);
+//     a->addPath(o1);
+//     o1->sendToImage(name, 0,0);
+//     delete o1;
+//     a->shiftScans();
+//   }
+  
   std::cout << "Generating occupancy grid..." << std::endl;
   OccupancyGrid* o1 = a->generateMapNoBlur();
   
   std::cout << "Generating hough map..." << std::endl;
   OccupancyGrid* hough = o1->generateHoughMap();
+  OccupancyGrid* hough2 = hough->generateHoughMap();
+  
+  a->addPath(o1);
+  a->addPath(hough);
+  a->addPath(hough2);
   
   //OccupancyGrid* o1 = a->generateMapReference();
   
@@ -410,8 +650,8 @@ int main(int argc, char **argv) {
   //o1->cleanFrontier();
   o1->sendHoughToImage(rawImg);
   o1->sendToImage(occImg, 0,0);
-  hough->sendToImage(sorImg, 0,0);
-  o1->sendHoughMaximaToImage(navImg);
+  hough->sendToImage(navImg, 0,0);
+  o1->sendHoughMaximaToImage(sorImg);
   //o2->sendToImage(sorImg);
   //g->sendToImage(rawImg);
   //g->cleanFrontier();

@@ -14,11 +14,11 @@ class HoughGrid
     static const int ADDITION = (int)((float)Grid::GRID_SIZE * 0.7071067812);
     static const unsigned short MAX_VALUE = 65535;  //maximum value we can have in a grid square
     //static const int DISTANCE = 2;  //separation of peaks
-    static const int NUM_PEAKS = 250;   //number of peaks to find
+    static const int NUM_PEAKS = 450;   //number of peaks to find
     
     //size of boxes to use for least squares
-    static const int LS_RADIUS = 15;
-    static const int LS_ANGLE = 51;//10;
+    static const int LS_RADIUS = 25;
+    static const int LS_ANGLE = 25;//10;
     
     unsigned short *map;                          //occupancy grid for this node
     
@@ -37,6 +37,7 @@ class HoughGrid
     unsigned short getValue(int x, int y);
     
     void addHoughPoint(int x, int y);
+    void removeHoughPoint(int x, int y);
     void addHoughPointWeighted(int x, int y, unsigned short weight);
     
     void findMaxima();

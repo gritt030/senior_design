@@ -12,6 +12,13 @@ HoughGrid* OccupancyGrid::performHoughTransform(){
     }
   }
   
+  for (int i=0; i<Grid::GRID_SIZE; i++){
+    for (int j=0; j<Grid::GRID_SIZE; j++){
+      char cur = this->grid->getValue(i,j);
+      if (cur > 15) h->removeHoughPoint(i,j);
+    }
+  }
+  
   return h;
 }
 
@@ -112,8 +119,8 @@ void OccupancyGrid::traceHoughWalls(OccupancyGrid* newGrid, HoughGrid* hough){
               theta = 3.141592654*((double)t/(double)(HoughGrid::GRID_SIZE));
               radius = r - HoughGrid::ADDITION;
               std::cout << theta << " " << radius << " " << lsRadius << " " << lsTheta << std::endl;
-              this->traceHoughLine((double)radius, theta, (double)lsRadius, lsTheta, newGrid);
-              //this->traceHoughLine((double)radius, theta, (double)radius, theta, newGrid);
+              //this->traceHoughLine((double)radius, theta, (double)lsRadius, lsTheta, newGrid);
+              this->traceHoughLine((double)radius, theta, (double)radius, theta, newGrid);
               //this->traceHoughLine((double)radius, theta, newGrid);
             }
           }

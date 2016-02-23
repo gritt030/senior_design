@@ -17,6 +17,7 @@ public:
   
   static const int SCALE = 10;  //number of cm per grid square
   static const int SONAR_MAX = 325;    //maximum range on sonar (not based on scale)
+  static const int SONAR_MAX_FRONT = 325; //maximum range for front sonars (not based on scale)
   
   SonarArchive();
   ~SonarArchive();
@@ -30,6 +31,7 @@ public:
   OccupancyGrid* generateMapReference();
   
   void shiftScans();
+  void addPath(OccupancyGrid* grid);
   
   void sortScans();
   void sortScansX();

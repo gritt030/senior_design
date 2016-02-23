@@ -451,7 +451,7 @@ OccupancyGrid* SonarArchive::generateMapReference(){
 
 
 void SonarArchive::shiftScans(){
-  this->reverseScans();
+  //this->reverseScans();
   double px = 0;
   double py = 0;
   double ph = 0;
@@ -472,7 +472,37 @@ void SonarArchive::shiftScans(){
     cur = cur->previous;
   }
   
-  this->reverseScans();
+  //this->reverseScans();
+}
+
+
+void SonarArchive::addPath(OccupancyGrid* grid){
+  SonarScan* cur = this->prevScan;
+  int x, y;
+  
+  while (cur != nullptr) {
+    x = (int)(cur->x/SCALE);
+    y = (int)(cur->y/SCALE);
+    
+    x += grid->BOUNDARY;
+    y = grid->BOUNDARY - y;
+    
+    grid->grid->setValue(x, y, -grid->grid->MAX_VALUE);
+    grid->grid->setValue(x+1, y, -grid->grid->MAX_VALUE);
+    grid->grid->setValue(x, y+1, -grid->grid->MAX_VALUE);
+    grid->grid->setValue(x-1, y, -grid->grid->MAX_VALUE);
+    grid->grid->setValue(x, y-1, -grid->grid->MAX_VALUE);
+//     grid->grid->setValue(x+2, y, -grid->grid->MAX_VALUE);
+//     grid->grid->setValue(x, y+2, -grid->grid->MAX_VALUE);
+//     grid->grid->setValue(x-2, y, -grid->grid->MAX_VALUE);
+//     grid->grid->setValue(x, y-2, -grid->grid->MAX_VALUE);
+//     grid->grid->setValue(x+1, y+1, -grid->grid->MAX_VALUE);
+//     grid->grid->setValue(x-1, y+1, -grid->grid->MAX_VALUE);
+//     grid->grid->setValue(x-1, y-1, -grid->grid->MAX_VALUE);
+//     grid->grid->setValue(x+1, y-1, -grid->grid->MAX_VALUE);
+    
+    cur = cur->previous;
+  }
 }
 
 
@@ -499,11 +529,11 @@ OccupancyGrid* SonarArchive::generateMapNoBlur(){
     if (current->w < SONAR_MAX) output->closeSliceFrontier(x, y, x+buf[0], y+buf[1], (float)angle);
     else output->openSliceFrontier(x, y, x+buf[0], y+buf[1], (float)angle);
     
-    if (current->nw < SONAR_MAX) output->closeSliceFrontier(x, y, x+buf[2], y+buf[3], (float)angle);
-    else output->openSliceFrontier(x, y, x+buf[2], y+buf[3], (float)angle);
+    //if (current->nw < SONAR_MAX_FRONT) output->closeSliceFrontier(x, y, x+buf[2], y+buf[3], (float)angle);
+    //else output->openSliceFrontier(x, y, x+buf[2], y+buf[3], (float)(angle/10.0));
     
-    if (current->ne < SONAR_MAX) output->closeSliceFrontier(x, y, x+buf[4], y+buf[5], (float)angle);
-    else output->openSliceFrontier(x, y, x+buf[4], y+buf[5], (float)angle);
+    //if (current->ne < SONAR_MAX_FRONT) output->closeSliceFrontier(x, y, x+buf[4], y+buf[5], (float)angle);
+    //else output->openSliceFrontier(x, y, x+buf[4], y+buf[5], (float)(angle/10.0));
     
     if (current->e < SONAR_MAX) output->closeSliceFrontier(x, y, x+buf[6], y+buf[7], (float)angle);
     else output->openSliceFrontier(x, y, x+buf[6], y+buf[7], (float)angle);
