@@ -9,23 +9,17 @@
 class HoughGrid
 {
   public:
-    static const int GRID_SIZE = (int)((float)Grid::GRID_SIZE * 1.414213562f) + 1;// + Grid::GRID_SIZE;   //size of one side of the grid
+    static const int GRID_SIZE = (int)((float)Grid::GRID_SIZE * 1.414213562f) + 1;   //size of one side of the grid
     static const int CENTER = Grid::GRID_SIZE/2;
-    static const int ADDITION = (int)((float)Grid::GRID_SIZE * 0.7071067812);
+    static const int ADDITION = GRID_SIZE/2;
     static const unsigned short MAX_VALUE = 65535;  //maximum value we can have in a grid square
-    //static const int DISTANCE = 2;  //separation of peaks
-    static const int NUM_PEAKS = 450;   //number of peaks to find
     
-    //size of boxes to use for least squares
-    static const int LS_RADIUS = 25;
-    static const int LS_ANGLE = 25;//10;
-    
-    unsigned short *map;                          //occupancy grid for this node
+    unsigned short *map;  //occupancy grid for this node
     
     double D_THETA;
     
     //theta used for cardinal directions
-    double X_Cardinal, Y_Cardinal;
+    double X_Cardinal=-1.0, Y_Cardinal=-1.0;
     
     //constructor/destructor
     HoughGrid();
@@ -39,13 +33,6 @@ class HoughGrid
     void addHoughPoint(int x, int y);
     void removeHoughPoint(int x, int y);
     void addHoughPointWeighted(int x, int y, unsigned short weight);
-    
-    void findMaxima();
-    void maxima1();
-    void maxima2();
-    int submaxima1(unsigned short* valArr);
-    void detectHist();
-    void leastSquares();
 };
 
 #endif // HOUGHGRID_H

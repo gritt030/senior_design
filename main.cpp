@@ -528,8 +528,8 @@ int main(int argc, char **argv) {
   
   
   /////Normal main loop /////
-  //for (int i=0; i<900; i++) r->updateCoordsFile();
-  for (int i=0; i<1000; i++){
+  //for (int i=0; i<950; i++) r->updateCoordsFile();
+  for (int i=0; i<3000; i++){
     //std::cout << "---- " << i << " ----" << std::endl;
     l->triggerUpdate();
     
@@ -619,11 +619,17 @@ int main(int argc, char **argv) {
   
   std::cout << "Generating hough map..." << std::endl;
   OccupancyGrid* hough = o1->generateHoughMap();
-  OccupancyGrid* hough2 = hough->generateHoughMap();
+  
+  std::cout << hough->Y_Cardinal << std::endl;
+  a->rotateMap(0.18326);
+  //a->rotateMap(hough->Y_Cardinal);
+  delete o1;
+  delete hough;
+  o1 = a->generateMapNoBlur();
+  hough = o1->generateHoughMap();
   
   a->addPath(o1);
   a->addPath(hough);
-  a->addPath(hough2);
   
   //OccupancyGrid* o1 = a->generateMapReference();
   
@@ -651,7 +657,8 @@ int main(int argc, char **argv) {
   o1->sendHoughToImage(rawImg);
   o1->sendToImage(occImg, 0,0);
   hough->sendToImage(navImg, 0,0);
-  o1->sendHoughMaximaToImage(sorImg);
+  a->generateMapNoBlur()->sendHoughMaximaToImage(sorImg);
+  //a->generateMapNoBlur()->generateHoughMap()->generateHoughMap()->sendToImage(sorImg, 0,0);
   //o2->sendToImage(sorImg);
   //g->sendToImage(rawImg);
   //g->cleanFrontier();

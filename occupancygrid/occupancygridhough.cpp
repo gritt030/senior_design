@@ -12,12 +12,12 @@ HoughGrid* OccupancyGrid::performHoughTransform(){
     }
   }
   
-  for (int i=0; i<Grid::GRID_SIZE; i++){
-    for (int j=0; j<Grid::GRID_SIZE; j++){
-      char cur = this->grid->getValue(i,j);
-      if (cur > 15) h->removeHoughPoint(i,j);
-    }
-  }
+//   for (int i=0; i<Grid::GRID_SIZE; i++){
+//     for (int j=0; j<Grid::GRID_SIZE; j++){
+//       char cur = this->grid->getValue(i,j);
+//       if (cur > 15) h->removeHoughPoint(i,j);
+//     }
+//   }
   
   return h;
 }
@@ -26,14 +26,17 @@ HoughGrid* OccupancyGrid::performHoughTransform(){
 OccupancyGrid* OccupancyGrid::generateHoughMap(){
   //do hough transform
   HoughGrid* h = this->performHoughTransform();
+  HoughLeastSquares* s = new HoughLeastSquares(h);
+  s->performLeastSquares();
   
   //generate new occupancy grid
   OccupancyGrid* g = new OccupancyGrid();
   
   //trace walls onto new occupancy grid
-  this->traceHoughWalls(g, h);
+  this->traceHoughWalls(g, h, s);
   
   delete h;
+  delete s;
   return g;
 }
 
@@ -62,72 +65,72 @@ OccupancyGrid* OccupancyGrid::generateHoughMap(){
 // }
 
 
-void OccupancyGrid::traceHoughWalls(OccupancyGrid* newGrid, HoughGrid* hough){
-  hough->findMaxima();
+void OccupancyGrid::traceHoughWalls(OccupancyGrid* newGrid, HoughGrid* hough, HoughLeastSquares* houghLS){
   
-  newGrid->X_Cardinal = hough->X_Cardinal;
-  newGrid->Y_Cardinal = hough->Y_Cardinal;
+  newGrid->X_Cardinal = houghLS->X_Cardinal;
+  newGrid->Y_Cardinal = houghLS->Y_Cardinal;
   
-  this->traceCardinalDirections(hough->X_Cardinal, hough->Y_Cardinal, newGrid);
+  this->traceCardinalDirections(houghLS->X_Cardinal, houghLS->Y_Cardinal, newGrid);
     
   double theta, lsTheta;
   int radius, lsRadius;
   
-  int cur;
-  int thetaSum=0, radiusSum=0, weightSum=0, num=0;
+  int thetaSum=0, radiusSum=0;
   int t,r, index;
   
-  for (int i=0; i<HoughGrid::GRID_SIZE; i+=HoughGrid::LS_ANGLE) {
-    for (int j=0; j<HoughGrid::GRID_SIZE; j+=HoughGrid::LS_RADIUS) {
-      thetaSum=0;
-      radiusSum=0;
-      weightSum=0;
-      num=0;
-      
-      for (int k=0; k<HoughGrid::LS_ANGLE; k++) {
-        for (int m=0; m<HoughGrid::LS_RADIUS; m++) {
-          t = (i+k);
-          r = (j+m);
-          if ((t >= HoughGrid::GRID_SIZE) || (r >= HoughGrid::GRID_SIZE)) continue;
-          index = t + r*HoughGrid::GRID_SIZE;
-          
-          cur = (int)hough->map[index];
-        
-          if (cur > 0) {
-            thetaSum += t*cur;
-            radiusSum += r*cur;
-            weightSum += cur;
-            num++;
-          }
-        }
-      }
-      
-      if (num > 0) {
-        thetaSum /= (weightSum);
-        radiusSum /= (weightSum);
-                
-        lsRadius = radiusSum - HoughGrid::ADDITION;
-        lsTheta = 3.141592654*((double)(thetaSum % HoughGrid::GRID_SIZE)/(double)(HoughGrid::GRID_SIZE));
-        
-        for (int k=0; k<HoughGrid::LS_ANGLE; k++) {
-          for (int m=0; m<HoughGrid::LS_RADIUS; m++) {
-            t = (i+k);
-            r = (j+m);
-            if ((t >= HoughGrid::GRID_SIZE) || (r >= HoughGrid::GRID_SIZE)) continue;
-            index = t + r*HoughGrid::GRID_SIZE;
-            if (hough->map[index] != 0) {
-              theta = 3.141592654*((double)t/(double)(HoughGrid::GRID_SIZE));
-              radius = r - HoughGrid::ADDITION;
-              std::cout << theta << " " << radius << " " << lsRadius << " " << lsTheta << std::endl;
-              //this->traceHoughLine((double)radius, theta, (double)lsRadius, lsTheta, newGrid);
-              this->traceHoughLine((double)radius, theta, (double)radius, theta, newGrid);
-              //this->traceHoughLine((double)radius, theta, newGrid);
-            }
-          }
-        }
+  for (int t=0; t<HoughGrid::GRID_SIZE; t++) {
+    for (int r=0; r<HoughGrid::GRID_SIZE; r++) {
+      index = t + r*HoughGrid::GRID_SIZE;
+      if (houghLS->lsqrGrid->map[index] > 0) {
+        theta = 3.141592654*((double)t/(double)(HoughGrid::GRID_SIZE));
+        radius = r - HoughGrid::ADDITION;
+        this->traceHoughLine((double)radius, theta, newGrid);
       }
     }
   }
+  
+  
+//   for (int i=0; i<HoughGrid::GRID_SIZE; i+=HoughLeastSquares::LS_ANGLE) {
+//     for (int j=0; j<HoughGrid::GRID_SIZE; j+=HoughLeastSquares::LS_RADIUS) {
+//       thetaSum = -1;
+//       radiusSum = -1;
+//       
+//       for (int k=0; k<HoughLeastSquares::LS_ANGLE; k++) {
+//         for (int m=0; m<HoughLeastSquares::LS_RADIUS; m++) {
+//           t = (i+k);
+//           r = (j+m);
+//           if ((t >= HoughGrid::GRID_SIZE) || (r >= HoughGrid::GRID_SIZE)) continue;
+//           index = t + r*HoughGrid::GRID_SIZE;
+//           if (houghLS->lsqrGrid->map[index] != 0) {
+//             thetaSum = t;
+//             radiusSum = r;
+//           }
+//         }
+//       }
+//       
+//       if (thetaSum < 0) continue;
+//                 
+//       lsRadius = radiusSum - HoughGrid::ADDITION;
+//       lsTheta = 3.141592654*((double)thetaSum/(double)(HoughGrid::GRID_SIZE));
+//       
+//       for (int k=0; k<HoughLeastSquares::LS_ANGLE; k++) {
+//         for (int m=0; m<HoughLeastSquares::LS_RADIUS; m++) {
+//           t = (i+k);
+//           r = (j+m);
+//           if ((t >= HoughGrid::GRID_SIZE) || (r >= HoughGrid::GRID_SIZE)) continue;
+//           index = t + r*HoughGrid::GRID_SIZE;
+//           if (hough->map[index] != 0) {
+//             theta = 3.141592654*((double)t/(double)(HoughGrid::GRID_SIZE));
+//             radius = r - HoughGrid::ADDITION;
+//             //this->traceHoughLine((double)radius, theta, (double)lsRadius, lsTheta, newGrid);
+//             this->traceHoughLine((double)lsRadius, lsTheta, newGrid);
+//             //this->traceHoughLine((double)radius, theta, (double)radius, theta, newGrid);
+//             //this->traceHoughLine((double)radius, theta, newGrid);
+//           }
+//         }
+//       }
+//     }
+//   }
 }
 
 
@@ -142,7 +145,7 @@ void OccupancyGrid::traceHoughLine(double radius, double theta, double lsRadius,
   double c = cos(theta);
   int count = BRIDGE;
   int count2 = 0;
-    
+      
   //line more horizontal than vertical
   if ((theta > 0.7853981634) && (theta < 2.35619449)) {
     for (x=0; x<Grid::GRID_SIZE; x++){
@@ -234,90 +237,90 @@ void OccupancyGrid::traceHoughLine(double radius, double theta, double lsRadius,
 
 
 
-// void OccupancyGrid::traceHoughLine(double radius, double theta, OccupancyGrid* newGrid){
-//   double x, y, i;
-//   double s = sin(theta);
-//   double c = cos(theta);
-//   int count = BRIDGE;
-//   int count2 = 0;
-//   
-//   //line more horizontal than vertical
-//   if ((theta > 0.7853981634) && (theta < 2.35619449)) {
-//     for (x=0; x<Grid::GRID_SIZE; x++){
-//       y = (radius-(x-HoughGrid::CENTER)*c)/s + HoughGrid::CENTER;
-//       
-//       if (this->grid->getValue((int)x, (int)y) < 0) {
-//         count2++;
-//         
-//         if (count >= BRIDGE) {
-//           count2 = 0;
-//           count = 0;
-//           
-//         } else if (count2 < MIN_BRIDGE) {
-//           continue;
-//           
-//         } else if (count2 = MIN_BRIDGE) {
-//           for (i = (x-count2-count); i<=x; i++){
-//             y = (radius-(i-HoughGrid::CENTER)*c)/s + HoughGrid::CENTER;
-//             newGrid->grid->setValue((int)i, (int)y, -10);
-//           }
-//           count = 0;
-//           
-//         } else if (count > 0) {
-//           for (i = (x-count); i<=x; i++){
-//             y = (radius-(i-HoughGrid::CENTER)*c)/s + HoughGrid::CENTER;
-//             newGrid->grid->setValue((int)i, (int)y, -10);
-//           }
-//           count = 0;
-//           
-//         } else {
-//           newGrid->grid->setValue((int)x, (int)y, -10);
-//         }
-//         
-//       } else {
-//         count++;
-//       }
-//     }
-//   
-//   //line more vertical than horizontal
-//   } else {
-//     for (y=0; y<Grid::GRID_SIZE; y++){
-//       x = (radius-(y-HoughGrid::CENTER)*s)/c + HoughGrid::CENTER;
-//       
-//       if (this->grid->getValue((int)x, (int)y) < 0) {
-//         count2++;
-//         
-//         if (count >= BRIDGE) {
-//           count2 = 0;
-//           count = 0;
-//           
-//         } else if (count2 < MIN_BRIDGE) {
-//           continue;
-//           
-//         } else if (count2 = MIN_BRIDGE) {
-//           for (i = (y-count2-count); i<=y; i++){
-//             x = (radius-(i-HoughGrid::CENTER)*s)/c + HoughGrid::CENTER;
-//             newGrid->grid->setValue((int)x, (int)i, -10);
-//           }
-//           count = 0;
-//           
-//         } else if (count > 0) {
-//           for (i = (y-count); i<=y; i++){
-//             x = (radius-(i-HoughGrid::CENTER)*s)/c + HoughGrid::CENTER;
-//             newGrid->grid->setValue((int)x, (int)i, -10);
-//           }
-//           count = 0;
-//           
-//         } else {
-//           newGrid->grid->setValue((int)x, (int)y, -10);
-//         }
-//         
-//       } else {
-//         count++;
-//       }
-//     }
-//   }
-// }
+void OccupancyGrid::traceHoughLine(double radius, double theta, OccupancyGrid* newGrid){
+  double x, y, i;
+  double s = sin(theta);
+  double c = cos(theta);
+  int count = BRIDGE;
+  int count2 = 0;
+  
+  //line more horizontal than vertical
+  if ((theta > 0.7853981634) && (theta < 2.35619449)) {
+    for (x=0; x<Grid::GRID_SIZE; x++){
+      y = (radius-(x-HoughGrid::CENTER)*c)/s + HoughGrid::CENTER;
+      
+      if (this->grid->getValue((int)x, (int)y) < 0) {
+        count2++;
+        
+        if (count >= BRIDGE) {
+          count2 = 0;
+          count = 0;
+          
+        } else if (count2 < MIN_BRIDGE) {
+          continue;
+          
+        } else if (count2 = MIN_BRIDGE) {
+          for (i = (x-count2-count); i<=x; i++){
+            y = (radius-(i-HoughGrid::CENTER)*c)/s + HoughGrid::CENTER;
+            newGrid->grid->setValue((int)i, (int)y, -10);
+          }
+          count = 0;
+          
+        } else if (count > 0) {
+          for (i = (x-count); i<=x; i++){
+            y = (radius-(i-HoughGrid::CENTER)*c)/s + HoughGrid::CENTER;
+            newGrid->grid->setValue((int)i, (int)y, -10);
+          }
+          count = 0;
+          
+        } else {
+          newGrid->grid->setValue((int)x, (int)y, -10);
+        }
+        
+      } else {
+        count++;
+      }
+    }
+  
+  //line more vertical than horizontal
+  } else {
+    for (y=0; y<Grid::GRID_SIZE; y++){
+      x = (radius-(y-HoughGrid::CENTER)*s)/c + HoughGrid::CENTER;
+      
+      if (this->grid->getValue((int)x, (int)y) < 0) {
+        count2++;
+        
+        if (count >= BRIDGE) {
+          count2 = 0;
+          count = 0;
+          
+        } else if (count2 < MIN_BRIDGE) {
+          continue;
+          
+        } else if (count2 = MIN_BRIDGE) {
+          for (i = (y-count2-count); i<=y; i++){
+            x = (radius-(i-HoughGrid::CENTER)*s)/c + HoughGrid::CENTER;
+            newGrid->grid->setValue((int)x, (int)i, -10);
+          }
+          count = 0;
+          
+        } else if (count > 0) {
+          for (i = (y-count); i<=y; i++){
+            x = (radius-(i-HoughGrid::CENTER)*s)/c + HoughGrid::CENTER;
+            newGrid->grid->setValue((int)x, (int)i, -10);
+          }
+          count = 0;
+          
+        } else {
+          newGrid->grid->setValue((int)x, (int)y, -10);
+        }
+        
+      } else {
+        count++;
+      }
+    }
+  }
+}
 
 
 
@@ -362,7 +365,7 @@ void OccupancyGrid::sendHoughToImage(char* filename){
   for (int i=0; i<HoughGrid::GRID_SIZE; i++){
     for (int j=0; j<HoughGrid::GRID_SIZE; j++) {
       unsigned short cur = h->getValue(i, j);
-      setImagePixelHough(w, i, j, cur);
+      setImagePixelHough(w, i, j, cur*500);
     }
   }
   
@@ -374,7 +377,8 @@ void OccupancyGrid::sendHoughToImage(char* filename){
 
 void OccupancyGrid::sendHoughMaximaToImage(char* filename){
   HoughGrid* h = this->performHoughTransform();
-  h->findMaxima();
+  HoughLeastSquares* s = new HoughLeastSquares(h);
+  s->findMaxima();
   
   PngWriter* w = new PngWriter();
   int size = HoughGrid::GRID_SIZE;
@@ -383,14 +387,33 @@ void OccupancyGrid::sendHoughMaximaToImage(char* filename){
   
   for (int i=0; i<HoughGrid::GRID_SIZE; i++){
     for (int j=0; j<HoughGrid::GRID_SIZE; j++) {
-      unsigned short cur = h->getValue(i, j);
+      unsigned short cur = s->lsqrGrid->getValue(i, j);
       setImagePixelHough(w, i, j, cur);
+    }
+  }
+  
+//   s->performLeastSquares();
+//     
+//   for (int i=0; i<HoughGrid::GRID_SIZE; i++){
+//     for (int j=0; j<HoughGrid::GRID_SIZE; j++) {
+//       unsigned short cur = s->lsqrGrid->getValue(i, j);
+//       if (cur > 0) setImagePixelHough(w, i, j, 65535);
+//     }
+//   }
+  
+  s->performLeastSquares();
+    
+  for (int i=0; i<HoughGrid::GRID_SIZE; i++){
+    for (int j=0; j<HoughGrid::GRID_SIZE; j++) {
+      unsigned short cur = s->lsqrGrid->getValue(i, j);
+      if (cur > 0) setImagePixelHough(w, i, j, 65535);
     }
   }
   
   w->output_image();
   delete w;
   delete h;
+  delete s;
 }
 
 

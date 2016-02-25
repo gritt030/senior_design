@@ -506,6 +506,24 @@ void SonarArchive::addPath(OccupancyGrid* grid){
 }
 
 
+void SonarArchive::rotateMap(double angle){
+  SonarScan* cur = this->prevScan;
+  double nX, nY;
+  double co = cos(angle);
+  double si = sin(angle);
+  
+  while (cur != nullptr){
+    cur->heading += angle;
+    nX = (cur->x)*co - (cur->y)*si;
+    nY = (cur->x)*si + (cur->y)*co;
+    cur->x = nX;
+    cur->y = nY;
+    
+    cur = cur->previous;
+  }
+}
+
+
 OccupancyGrid* SonarArchive::generateMapNoBlur(){
   this->reverseScans();
   

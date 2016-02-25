@@ -32,6 +32,7 @@ public:
   
   void shiftScans();
   void addPath(OccupancyGrid* grid);
+  void rotateMap(double angle);
   
   void sortScans();
   void sortScansX();

@@ -10,6 +10,7 @@
 
 #include "grid/grid.h"
 #include "grid/houghgrid.h"
+#include "grid/houghleastsquares.h"
 #include "./../pngwriter/png_writer.h"
 
 class OccupancyGrid {
@@ -86,9 +87,9 @@ class OccupancyGrid {
     
     //Hough transform stuff
     OccupancyGrid* generateHoughMap();
-    void traceHoughWalls(OccupancyGrid* newGrid, HoughGrid* hough);
+    void traceHoughWalls(OccupancyGrid* newGrid, HoughGrid* hough, HoughLeastSquares* houghLS);
     void traceHoughLine(double radius, double theta, double lsRadius, double lsTheta, OccupancyGrid* newGrid);
-    //void traceHoughLine(double radius, double theta, OccupancyGrid* newGrid);
+    void traceHoughLine(double radius, double theta, OccupancyGrid* newGrid);
     void traceCardinalDirections(double x_card, double y_card, OccupancyGrid* newGrid);
     void sendHoughToImage(char* filename);
     void sendHoughMaximaToImage(char* filename);
