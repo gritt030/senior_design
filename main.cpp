@@ -654,10 +654,12 @@ int main(int argc, char **argv) {
   
   std::cout << "Image" << std::endl;
   //o1->cleanFrontier();
-  o1->sendHoughToImage(rawImg);
+  
+  //o1->sendHoughToImage(rawImg);
   o1->sendToImage(occImg, 0,0);
   hough->sendToImage(navImg, 0,0);
-  a->generateMapNoBlur()->sendHoughMaximaToImage(sorImg);
+  //a->generateMapNoBlur()->sendHoughMaximaToImage(sorImg);
+  
   //a->generateMapNoBlur()->generateHoughMap()->generateHoughMap()->sendToImage(sorImg, 0,0);
   //o2->sendToImage(sorImg);
   //g->sendToImage(rawImg);

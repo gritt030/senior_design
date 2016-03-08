@@ -11,6 +11,7 @@
 #include "grid/grid.h"
 #include "grid/houghgrid.h"
 #include "grid/houghleastsquares.h"
+#include "grid/houghline.h"
 #include "./../pngwriter/png_writer.h"
 
 class OccupancyGrid {
@@ -86,6 +87,21 @@ class OccupancyGrid {
     
     
     //Hough transform stuff
+//     typedef struct HoughLine{
+//       double radius, theta;
+//       int startX, startY, endX, endY;
+//       struct HoughLine* next;
+//     } HoughLine;
+    
+    HoughLine* lineList = nullptr;
+    HoughLine* getHoughLines(double radius, double theta);
+    void makeHoughLine(double r, double t, int sX, int sY, int eX, int eY, HoughLine* hl);
+    int combineHoughLines(HoughLine* lines);
+    int mergeLineList(HoughLine* lines);
+    bool mergeHoughLines(HoughLine* line1, HoughLine* line2);
+    void traceHoughWalls(OccupancyGrid* newGrid, HoughLeastSquares* houghLS);
+    void drawHoughLine(HoughLine* line, OccupancyGrid* newGrid);
+    
     OccupancyGrid* generateHoughMap();
     void traceHoughWalls(OccupancyGrid* newGrid, HoughGrid* hough, HoughLeastSquares* houghLS);
     void traceHoughLine(double radius, double theta, double lsRadius, double lsTheta, OccupancyGrid* newGrid);
@@ -95,8 +111,8 @@ class OccupancyGrid {
     void sendHoughMaximaToImage(char* filename);
     void setImagePixelHough(PngWriter* w, int x, int y, unsigned short value);
     HoughGrid* performHoughTransform();
-    static const int BRIDGE = 12;   //number of open cells to jump when tracing lines (12)
-    static const int MIN_BRIDGE = 5;    //number of closed cells in a row required to make a wall (5)
+    static const int BRIDGE = 144;//12;   //number of open cells to jump when tracing lines (12)
+    static const int MIN_BRIDGE = 25;//5;    //number of closed cells in a row required to make a wall (5)
     
     //theta used for cardinal directions
     double X_Cardinal=-1.0, Y_Cardinal=-1.0;
