@@ -111,7 +111,7 @@ class OccupancyGrid {
     void sendHoughMaximaToImage(char* filename);
     void setImagePixelHough(PngWriter* w, int x, int y, unsigned short value);
     HoughGrid* performHoughTransform();
-    static const int BRIDGE = 144;//12;   //number of open cells to jump when tracing lines (12)
+    static const int BRIDGE = 64;//12;   //number of open cells to jump when tracing lines (12)
     static const int MIN_BRIDGE = 25;//5;    //number of closed cells in a row required to make a wall (5)
     
     //theta used for cardinal directions

@@ -528,8 +528,8 @@ int main(int argc, char **argv) {
   
   
   /////Normal main loop /////
-  //for (int i=0; i<950; i++) r->updateCoordsFile();
-  for (int i=0; i<3000; i++){
+  for (int i=0; i<100; i++) r->updateCoordsFile();
+  for (int i=0; i<250; i++){
     //std::cout << "---- " << i << " ----" << std::endl;
     l->triggerUpdate();
     
@@ -621,8 +621,8 @@ int main(int argc, char **argv) {
   OccupancyGrid* hough = o1->generateHoughMap();
   
   std::cout << hough->Y_Cardinal << std::endl;
-  a->rotateMap(0.18326);
-  //a->rotateMap(hough->Y_Cardinal);
+  //a->rotateMap(0.18326);
+  a->rotateMap(hough->Y_Cardinal);
   delete o1;
   delete hough;
   o1 = a->generateMapNoBlur();
