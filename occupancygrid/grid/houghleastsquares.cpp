@@ -335,6 +335,8 @@ int HoughLeastSquares::getDelta(int t1, int r1, int t2, int r2){
 
 
 void HoughLeastSquares::findMaxima(){
+  //this->maxima0();
+  
   this->maxima1();
   this->maxima2();
   
@@ -345,12 +347,153 @@ void HoughLeastSquares::findMaxima(){
   this->lsqrGrid->Y_Cardinal = Y_Cardinal;
 }
 
+
+//Get all local maxima
+// void HoughLeastSquares::maxima0(){
+//   HoughGrid* newGrid = new HoughGrid();
+//   
+//   int ex,ey,wx,wy;
+//   unsigned short n,s,e,w,nw,ne,sw,se, cur;
+//   
+//   for (int i=0; i<HoughGrid::GRID_SIZE; i++) {
+//     for (int j=1; j<HoughGrid::GRID_SIZE-1; j++) {
+//       ex = i+1;
+//       ey = j;
+//       wx = i-1;
+//       wy = j;
+//       
+//       if (i == 0) {
+//         wx = HoughGrid::GRID_SIZE-1;
+//         wy = 2*HoughGrid::ADDITION - j;
+//       } else if (i == HoughGrid::GRID_SIZE - 1) {
+//         ex = 0;
+//         ey = 2*HoughGrid::ADDITION - j;
+//       }
+//       
+//       n = this->houghGrid->getValue(i,j-1);
+//       s = this->houghGrid->getValue(i,j+1);
+//       e = this->houghGrid->getValue(ex,ey);
+//       w = this->houghGrid->getValue(wx,wy);
+//       nw = this->houghGrid->getValue(wx,j-1);
+//       ne = this->houghGrid->getValue(ex,j-1);
+//       sw = this->houghGrid->getValue(wx,j+1);
+//       se = this->houghGrid->getValue(ex,j+1);
+//       cur = this->houghGrid->getValue(i,j);
+//       
+//       int avg = n+s+e+w+nw+ne+sw+se+cur;
+//       avg /= 9;
+//       
+//       newGrid->setValue(i,j,(unsigned short)avg);
+//       
+//     }
+//   }
+//   
+//   //delete houghGrid;
+//   this->houghGrid = newGrid;
+// }
+
+
+
+void HoughLeastSquares::maxima0(){
+  HoughGrid* newGrid = new HoughGrid();
+  
+  int ex,ey,wx,wy;
+  unsigned short n,s,e,w,nw,ne,sw,se, cur;
+  int maxI, maxJ, max;
+  
+  for (int i=0; i<1; i++) {
+    max = 0;
+  
+  for (int i=0; i<HoughGrid::GRID_SIZE; i++) {
+    for (int j=1; j<HoughGrid::GRID_SIZE-1; j++) {
+      cur = this->houghGrid->getValue(i,j);
+      if (cur > max) {
+        max = cur;
+        maxI = i;
+        maxJ = j;
+      }
+    }
+  }
+  
+  std::cout << maxI << ", " << maxJ << ", " << max << std::endl;
+  
+  submax0(maxI, maxJ, max, max/4, 0, newGrid);
+  
+  }
+  
+  this->houghGrid = newGrid;
+}
+
+
+void HoughLeastSquares::submax0(int i, int j, int max, int min, int version, HoughGrid* newGrid){
+  if (max <= min) return;
+  //if ((i < 0) || (j<0) || (i>=HoughGrid::GRID_SIZE) || (j>=HoughGrid::GRID_SIZE)) return;
+  
+//   unsigned short alr = newGrid->getValue(i,j);
+//   if (alr != 0) return;
+  
+  unsigned short cur = this->houghGrid->getValue(i,j);
+  if (cur < min) return;
+      
+  if ((cur <= max) && (cur > min)){
+    newGrid->setValue(i,j,cur);
+    houghGrid->setValue(i,j,0);
+    
+    //std::cout << i << "," << j << std::endl;
+  }
+  
+  int ex,ey,wx,wy;
+  ex = i+1;
+  ey = j;
+  wx = i-1;
+  wy = j;
+  
+  if (i == 0) {
+    wx = HoughGrid::GRID_SIZE-1;
+    wy = 2*HoughGrid::ADDITION - j;
+  } else if (i == HoughGrid::GRID_SIZE - 1) {
+    ex = 0;
+    ey = 2*HoughGrid::ADDITION - j;
+  }
+      
+  int newMax = max-2;
+  int newMin = min;
+  
+  if (version == 0) {
+    submax0(i, j+1, newMax, newMin, 1, newGrid);
+    submax0(i, j-1, newMax, newMin, 2, newGrid);
+    submax0(ex, ey, newMax, newMin, 3, newGrid);
+    submax0(wx, wy, newMax, newMin, 4, newGrid);
+  } else if (version == 1) {
+    submax0(i, j+1, newMax, newMin, 1, newGrid);
+    submax0(ex, ey, newMax, newMin, 3, newGrid);
+    submax0(wx, wy, newMax, newMin, 4, newGrid);
+  } else if (version == 2) {
+    submax0(i, j-1, newMax, newMin, 2, newGrid);
+    submax0(ex, ey, newMax, newMin, 3, newGrid);
+    submax0(wx, wy, newMax, newMin, 4, newGrid);
+  } else if (version == 3) {
+    submax0(i, j+1, newMax, newMin, 1, newGrid);
+    submax0(i, j-1, newMax, newMin, 2, newGrid);
+    submax0(ex, ey, newMax, newMin, 3, newGrid);
+  } else {
+    submax0(i, j+1, newMax, newMin, 1, newGrid);
+    submax0(i, j-1, newMax, newMin, 2, newGrid);
+    submax0(wx, wy, newMax, newMin, 4, newGrid);
+  }
+}
+
+
+
 //Get all local maxima
 void HoughLeastSquares::maxima1(){
   HoughGrid* newGrid = new HoughGrid();
   
   int ex,ey,wx,wy;
   unsigned short n,s,e,w,nw,ne,sw,se, cur;
+  
+  unsigned long avg = 0;
+  int count = 0;
   
   for (int i=0; i<HoughGrid::GRID_SIZE; i++) {
     for (int j=1; j<HoughGrid::GRID_SIZE-1; j++) {
@@ -377,16 +520,27 @@ void HoughLeastSquares::maxima1(){
       se = this->houghGrid->getValue(ex,j+1);
       cur = this->houghGrid->getValue(i,j);
       
+      if (cur > 0) {
+        avg += cur;
+        count++;
+      }
+      if (cur > 0) newGrid->setValue(i,j,cur);
       
 //       if ((cur>n) && (cur>s) && (cur>e) && (cur>w) && (cur>nw) && (cur>ne) && (cur>sw) && (cur>se)) {
 //         newGrid->setValue(i,j,cur);
 //       }
+            
+//       if ((cur>=n) && (cur>=s) && (cur>=e) && (cur>=w) && (cur>=nw) && (cur>=ne) && (cur>=sw) && (cur>=se)) {
+//         newGrid->setValue(i,j,cur);
+//       }
       
-      if ((cur>=n) && (cur>=s) && (cur>=e) && (cur>=w) && (cur>=nw) && (cur>=ne) && (cur>=sw) && (cur>=se)) {
-        newGrid->setValue(i,j,cur);
-      }
+//       if ((cur<=n) && (cur<=s) && (cur<=e) && (cur<=w) && (cur<=nw) && (cur<=ne) && (cur<=sw) && (cur<=se)) {
+//         newGrid->setValue(i,j,cur);
+//       }
     }
   }
+  
+  std::cout << "Average: " << avg << ", " << count << std::endl;
   
   if (this->lsqrGrid != nullptr) delete this->lsqrGrid;
   this->lsqrGrid = newGrid;

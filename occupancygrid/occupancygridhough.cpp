@@ -78,11 +78,13 @@ void OccupancyGrid::traceHoughWalls(OccupancyGrid* newGrid, HoughLeastSquares* h
   int t,r, index;
   HoughLine* curLines = nullptr;
   
-  int fndLines = 0;
   int comLines = 0;
   int mrgLines = 0;
   
   int comb;
+  
+  char* name = new char[128];
+  int ind = 0;
   
   std::cout << "Finding lines:\n";
   
@@ -100,15 +102,30 @@ void OccupancyGrid::traceHoughWalls(OccupancyGrid* newGrid, HoughLeastSquares* h
           comb = this->combineHoughLines(curLines);
           if (comb == 0) continue;
           
+          
+          
 //           HoughLine* curLine = curLines;
 //           int count = 0;
+//           newGrid = new OccupancyGrid();
+//           std::sprintf(name, "/home/owner/pics/pics/sequence/p%d.png", ind++);
 //           while (curLine != nullptr){
 //             this->drawHoughLine(curLine, newGrid);
+//             
+//             std::cout << curLine->radius << ",";
+//             std::cout << curLine->theta << ",";
+//             std::cout << curLine->startX << ",";
+//             std::cout << curLine->startY << ",";
+//             std::cout << curLine->endX << ",";
+//             std::cout << curLine->endY << "\n";
 //             curLine = curLine->next;
 //             count++;
 //           }
+//           newGrid->sendToImage(name, 0,0);
+//           delete newGrid;
 //           std::cout << count << std::endl;
 //           continue;
+          
+          
           
           comLines += comb;
           mrgLines += this->mergeLineList(curLines);
@@ -118,7 +135,12 @@ void OccupancyGrid::traceHoughWalls(OccupancyGrid* newGrid, HoughLeastSquares* h
 //           HoughLine* curLine = lineList;
 //           int count = 0;
 //           while (curLine != nullptr){
-//             this->drawHoughLine(curLine, newGrid);
+//             std::cout << curLine->radius << ",";
+//             std::cout << curLine->theta << ",";
+//             std::cout << curLine->startX << ",";
+//             std::cout << curLine->startY << ",";
+//             std::cout << curLine->endX << ",";
+//             std::cout << curLine->endY << "\n";
 //             curLine = curLine->next;
 //             count++;
 //           }
@@ -146,7 +168,6 @@ void OccupancyGrid::traceHoughWalls(OccupancyGrid* newGrid, HoughLeastSquares* h
     }
   }
   
-  std::cout << "Total lines: " << fndLines << std::endl;
   std::cout << "Combined lines: " << comLines << std::endl;
   std::cout << "Merged Lines: " << mrgLines << std::endl;
   
@@ -154,6 +175,14 @@ void OccupancyGrid::traceHoughWalls(OccupancyGrid* newGrid, HoughLeastSquares* h
   HoughLine* curLine = lineList;
   while (curLine != nullptr){
     this->drawHoughLine(curLine, newGrid);
+    
+//             std::cout << curLine->radius << ",";
+//             std::cout << curLine->theta << ",";
+//             std::cout << curLine->startX << ",";
+//             std::cout << curLine->startY << ",";
+//             std::cout << curLine->endX << ",";
+//             std::cout << curLine->endY << "\n";
+    
     curLine = curLine->next;
     line++;
   }
@@ -652,6 +681,60 @@ int OccupancyGrid::combineHoughLines(HoughLine* lines){
     }    
   }
   
+  
+  
+  
+  
+  
+//   prevLine = lines;
+//   curLine = lines->next;
+//   numLines = 0;
+//     
+//   while (curLine != nullptr){
+//     xDiff = (curLine->startX) - (prevLine->endX);
+//     yDiff = (curLine->startY) - (prevLine->endY);
+//     diff = xDiff*xDiff + yDiff*yDiff;
+//         
+//     //if this line and preline are close, make into one line
+//     if (diff < 1000){
+//       prevLine->endX = curLine->endX;
+//       prevLine->endY = curLine->endY;
+//       prevLine->next = curLine->next;
+//       delete curLine;
+//       curLine = prevLine->next;
+//     
+//     //make sure prevline is long enough to keep
+//     } else {
+//       numLines++;
+//       prevLine = curLine;
+//       curLine = curLine->next;
+//     }
+//   }
+  
+  
+  
+//   curLine = lines;
+//   int startX = curLine->startX;
+//   int startY = curLine->startY;
+//   int endX = curLine->endX;
+//   int endY = curLine->endY;
+//   
+//   while (curLine != nullptr){
+//     endX = curLine->endX;
+//     endY = curLine->endY;
+//     curLine = curLine->next;
+//   }
+//   
+//   lines->startX = startX;
+//   lines->startY = startY;
+//   lines->endX = endX;
+//   lines->endY = endY;
+//   lines->next = nullptr;
+//   return 1;
+  
+  
+  
+  
   return numLines;
 }
 
@@ -717,11 +800,50 @@ int OccupancyGrid::mergeLineList(HoughLine* lines){
 
 
 
+
+
+
+
 bool OccupancyGrid::mergeHoughLines(HoughLine* line1, HoughLine* line2){
+  return false;
+  int diff12x = (line1->endX) - (line2->startX);
+  int diff12y = (line1->endY) - (line2->startY);
+  int diff12 = diff12x*diff12x + diff12y*diff12y;
+  
+  int diff21x = (line2->endX) - (line1->startX);
+  int diff21y = (line2->endY) - (line1->startY);
+  int diff21 = diff12x*diff12x + diff12y*diff12y;
+  
   double thetaDiff = (line1->theta) - (line2->theta);
   thetaDiff *= thetaDiff;
   double radiusDiff = (line1->radius) - (line2->radius);
   radiusDiff *= radiusDiff;
+  
+  double thetaThresh = 30.0*0.0174532925;
+  double radiusThresh = 10.0;
+  int joinThresh = 50;
+  
+  if (diff12 < diff21){
+    if ((diff12 < (joinThresh*joinThresh)) && (thetaDiff < (thetaThresh*thetaThresh)) && (radiusDiff < (radiusThresh*radiusThresh))) {
+      line1->theta = ((line1->theta)+(line2->theta))/2;
+      line1->radius = ((line1->radius)+(line2->radius))/2;
+      line1->endX = line2->endX;
+      line1->endY = line2->endY;
+      return true;
+    }
+  } else {
+    if ((diff21 < (joinThresh*joinThresh)) && (thetaDiff < (thetaThresh*thetaThresh)) && (radiusDiff < (radiusThresh*radiusThresh))) {
+      line1->theta = ((line1->theta)+(line2->theta))/2;
+      line1->radius = ((line1->radius)+(line2->radius))/2;
+      line1->startX = line2->startX;
+      line1->startY = line2->startY;
+      return true;
+    }
+  }
+  
+  return false;
+  
+  
   
   int dx1, dy1, dx2, dy2;
   double c1, s1, c2, s2;
@@ -732,8 +854,7 @@ bool OccupancyGrid::mergeHoughLines(HoughLine* line1, HoughLine* line2){
   double newTheta, newRadius;
   int newSX, newEX, newSY, newEY;
   
-  double thetaThresh = 30.0*0.0174532925;
-  double radiusThresh = 10.0;
+  
   
   if ((thetaDiff < (thetaThresh * thetaThresh)) && (radiusDiff < (radiusThresh*radiusThresh))){
     
@@ -868,74 +989,196 @@ bool OccupancyGrid::mergeHoughLines(HoughLine* line1, HoughLine* line2){
     line1->theta = (diff1*(line1->theta) + diff2*(line2->theta))/(diff1+diff2);
     line1->radius = (diff1*(line1->radius) + diff2*(line2->radius))/(diff1+diff2);
     
-    
+    newSX = ((line1->startX) + (line2->startX))/2;
+    newSY = ((line1->startY) + (line2->startY))/2;
+    newEX = ((line1->endX) + (line2->endX))/2;
+    newEY = ((line1->endY) + (line2->endY))/2;
 
-    line1->theta = newTheta;
-    line1->radius = newRadius;
+//     line1->theta = newTheta;
+//     line1->radius = newRadius;
     line1->startX = newSX;
     line1->startY = newSY;
     line1->endX = newEX;
     line1->endY = newEY;
     return true;
-  
-//     //check if close endpoints should be merged
-//     dx1 = (line1->startX) - (line2->endX);
-//     dy1 = (line1->startY) - (line2->endY);
-//     
-//     if ((dx1*dx1 + dy1*dy1) < BRIDGE) {
-//       line1->startX = line2->startX;
-//       line1->startY = line2->startY;
-//       dx1 = line1->endX - line1->startX;
-//       dy1 = line1->endY - line1->startY;
-//       
-//       line1->theta = atan2(dy1, dx1) + 1.570796327;
-//       line1->radius = round((double)(line1->endX)*cos(line1->theta) + (double)(line1->endY)*sin(line1->theta));
-//       return true;
-//     }
-//     
-//     dx2 = (line2->startX) - (line1->endX);
-//     dy2 = (line2->startY) - (line1->endY);
-//     
-//     if ((dx2*dx2 + dy2*dy2) < BRIDGE) {
-//       line1->endX = line2->endX;
-//       line1->endY = line2->endY;
-//       dx2 = line1->endX - line1->startX;
-//       dy2 = line1->endY - line1->startY;
-//       
-//       line1->theta = atan2(dy2, dx2) + 1.570796327;
-//       line1->radius = round((double)(line1->endX)*cos(line1->theta) + (double)(line1->endY)*sin(line1->theta));
-//       return true;
-//     }
-//     
-//     //use dot products to see if lines overlap
-//     dx1 = (line2->startX) - (line1->endX);
-//     dy1 = (line2->startY) - (line1->endY);
-//     
-//     dx2 = (line1->endX) - (line1->startX);
-//     dy2 = (line1->endY) - (line1->startY);
-//     
-//     if ((dx1*dx2 + dy1*dy2) >= 0) {
-//       dx1 = (line1->startX) - (line2->endX);
-//       dy1 = (line1->startY) - (line2->endY);
-//     
-//       dx2 = (line2->endX) - (line2->startX);
-//       dy2 = (line2->endY) - (line2->startY);
-//       
-//       if ((dx1*dx2 + dy1*dy2) >= 0) {
-//         //lines overlap, merge them
-//         //TODO: merge the lines here with least squares
-//         dx2 = line1->endX - line1->startX;
-//         dy2 = line1->endY - line1->startY;
-//         
-//         line1->theta = atan2(dy2, dx2) + 1.570796327;
-//         line1->radius = round((double)(line1->endX)*cos(line1->theta) + (double)(line1->endY)*sin(line1->theta));
-//         return true;
-//       }
-//     }
   }
   
   return false;
 }
+
+
+
+
+
+
+
+// bool OccupancyGrid::mergeHoughLines(HoughLine* line1, HoughLine* line2){ //return false;///////
+//   double thetaDiff = (line1->theta) - (line2->theta);
+//   thetaDiff *= thetaDiff;
+//   double radiusDiff = (line1->radius) - (line2->radius);
+//   radiusDiff *= radiusDiff;
+//   
+//   int dx1, dy1, dx2, dy2;
+//   double c1, s1, c2, s2;
+//   double diff1, diff2;
+//   
+//   double det;
+//   double intX, intY;
+//   double newTheta, newRadius;
+//   int newSX, newEX, newSY, newEY;
+//   
+//   double thetaThresh = 30.0*0.0174532925;
+//   double radiusThresh = 10.0;
+//   
+//   if ((thetaDiff < (thetaThresh * thetaThresh)) && (radiusDiff < (radiusThresh*radiusThresh))){
+//     
+//     //check if close endpoints should be merged
+//     dx1 = (line1->startX) - (line2->endX);
+//     dy1 = (line1->startY) - (line2->endY);
+//     
+//     if ((dx1*dx1 + dy1*dy1) > BRIDGE) {
+//       dx2 = (line2->startX) - (line1->endX);
+//       dy2 = (line2->startY) - (line1->endY);
+//       
+//       if ((dx2*dx2 + dy2*dy2) > BRIDGE) {
+//         //use dot products to see if lines overlap
+//         dx1 = (line2->startX) - (line1->endX);
+//         dy1 = (line2->startY) - (line1->endY);
+//         
+// //         dx2 = (line1->endX) - (line1->startX);
+// //         dy2 = (line1->endY) - (line1->startY);
+//         dx2 = (line1->startX) - (line1->endX);
+//         dy2 = (line1->startY) - (line1->endY);
+//         
+//         if ((dx1*dx2 + dy1*dy2) < 0) {
+//           dx1 = (line1->startX) - (line2->endX);
+//           dy1 = (line1->startY) - (line2->endY);
+//         
+// //           dx2 = (line2->endX) - (line2->startX);
+// //           dy2 = (line2->endY) - (line2->startY);
+//           dx2 = (line2->startX) - (line2->endX);
+//           dy2 = (line2->startY) - (line2->endY);
+//           
+//           if ((dx1*dx2 + dy1*dy2) < 0) {
+//             //lines don't overlap, don't merge them
+//             std::cout << line1->radius << ", " << line2->radius << ", ";
+//             std::cout << line1->theta << ", " << line2->theta << ", ";
+//             std::cout << line1->startX << ", " << line2->startX << ", ";
+//             std::cout << line1->startY << ", " << line2->startY << ", ";
+//             std::cout << line1->endX << ", " << line2->endX << ", ";
+//             std::cout << line1->endY << ", " << line2->endY << "\n";
+//             return false;
+//           }
+//         }
+//       }
+//     }
+//     
+//     
+//     
+//     
+//     
+//     
+//     
+//     dx1 = (line1->endX) - (line1->startX);
+//     dy1 = (line1->endY) - (line1->startY);
+//     diff1 = sqrt(dx1*dx1 + dy1*dy1);    //weights
+//     
+//     dx2 = (line2->endX) - (line2->startX);
+//     dy2 = (line2->endY) - (line2->startY);
+//     diff2 = sqrt(dx2*dx2 + dy2*dy2);    //weights
+//     
+//     c1 = cos(line1->theta);     //angles
+//     s1 = sin(line1->theta);
+//     c2 = cos(line2->theta);
+//     s2 = sin(line2->theta);
+//     
+//     det = c1*s2 - s1*c2;        //determinant
+//     
+//     if (det == 0.0) {
+//       newTheta = line1->theta;
+//       newRadius = ((line1->radius) + (line2->radius))/2.0;
+//     } else {
+//       newTheta = ((diff1*line1->theta) + (diff2*line2->theta))/(diff1 + diff2);
+// //       newTheta = ((diff1*line1->radius) + (diff2*line2->radius))/(diff1 + diff2);
+//       
+//       intX = ((s2*line1->radius) - (s1*line2->radius))/det;
+//       intY = ((c1*line2->radius) - (c2*line1->radius))/det;
+//       newRadius = intX*cos(newTheta) + intY*sin(newTheta);
+//     }
+//     
+//     double interTheta = newTheta + 1.570796327;
+//     double startRad1 = (line1->startX)*cos(interTheta) + (line1->startY)*sin(interTheta);
+//     double startRad2 = (line2->startX)*cos(interTheta) + (line2->startY)*sin(interTheta);
+//     double endRad1 = (line1->endX)*cos(interTheta) + (line1->endY)*sin(interTheta);
+//     double endRad2 = (line2->endX)*cos(interTheta) + (line2->endY)*sin(interTheta);
+//     
+//     double interDet = cos(newTheta)*sin(interTheta) - sin(newTheta)*cos(interTheta);
+//     
+//     double interSX1 = (newRadius*sin(interTheta) - startRad1*sin(newTheta))/interDet;
+//     double interSX2 = (newRadius*sin(interTheta) - startRad2*sin(newTheta))/interDet;
+//     double interEX1 = (newRadius*sin(interTheta) - endRad1*sin(newTheta))/interDet;
+//     double interEX2 = (newRadius*sin(interTheta) - endRad2*sin(newTheta))/interDet;
+//     
+//     double interSY1 = (startRad1*cos(newTheta) - newRadius*cos(interTheta))/interDet;
+//     double interSY2 = (startRad2*cos(newTheta) - newRadius*cos(interTheta))/interDet;
+//     double interEY1 = (endRad1*cos(newTheta) - newRadius*cos(interTheta))/interDet;
+//     double interEY2 = (endRad2*cos(newTheta) - newRadius*cos(interTheta))/interDet;
+//     
+//     //1,1
+//     double len1 = (interSX1 - interEX1)*(interSX1 - interEX1) + (interSY1 - interEY1)*(interSY1 - interEY1);
+//     //1,2
+//     double len2 = (interSX1 - interEX2)*(interSX1 - interEX2) + (interSY1 - interEY2)*(interSY1 - interEY2);
+//     //2,1
+//     double len3 = (interSX2 - interEX1)*(interSX2 - interEX1) + (interSY2 - interEY1)*(interSY2 - interEY1);
+//     //2,2
+//     double len4 = (interSX2 - interEX2)*(interSX2 - interEX2) + (interSY2 - interEY2)*(interSY2 - interEY2);
+//     
+//     if ((len1 > len2) && (len1 > len3) && (len1 > len4)){
+//       newSX = (int)round(interSX1);
+//       newSY = (int)round(interSY1);
+//       newEX = (int)round(interEX1);
+//       newEY = (int)round(interEY1);
+//     } else if ((len2 > len3) && (len2 > len4)){
+//       newSX = (int)round(interSX1);
+//       newSY = (int)round(interSY1);
+//       newEX = (int)round(interEX2);
+//       newEY = (int)round(interEY2);
+//     } else if (len3 > len4){
+//       newSX = (int)round(interSX2);
+//       newSY = (int)round(interSY2);
+//       newEX = (int)round(interEX1);
+//       newEY = (int)round(interEY1);
+//     } else {
+//       newSX = (int)round(interSX2);
+//       newSY = (int)round(interSY2);
+//       newEX = (int)round(interEX2);
+//       newEY = (int)round(interEY2);
+//     }
+//     
+//     //std::cout << (line1->radius) << ", " << (line2->radius) << ", " << (line1->theta) << ", " << (line2->theta) << std::endl;
+//     
+//     line1->theta = ((line1->theta) + (line2->theta))/2.0;
+//     line1->radius = ((line1->radius) + (line2->radius))/2.0;
+//     
+//     line1->theta = (diff1*(line1->theta) + diff2*(line2->theta))/(diff1+diff2);
+//     line1->radius = (diff1*(line1->radius) + diff2*(line2->radius))/(diff1+diff2);
+//     
+//     newSX = ((line1->startX) + (line2->startX))/2;
+//     newSY = ((line1->startY) + (line2->startY))/2;
+//     newEX = ((line1->endX) + (line2->endX))/2;
+//     newEY = ((line1->endY) + (line2->endY))/2;
+// 
+// //     line1->theta = newTheta;
+// //     line1->radius = newRadius;
+//     line1->startX = newSX;
+//     line1->startY = newSY;
+//     line1->endX = newEX;
+//     line1->endY = newEY;
+//     return true;
+//   }
+//   
+//   return false;
+// }
 
 
 
@@ -1006,7 +1249,7 @@ void OccupancyGrid::sendHoughMaximaToImage(char* filename){
   for (int i=0; i<HoughGrid::GRID_SIZE; i++){
     for (int j=0; j<HoughGrid::GRID_SIZE; j++) {
       unsigned short cur = s->lsqrGrid->getValue(i, j);
-      setImagePixelHough(w, i, j, cur);
+      setImagePixelHough(w, i, j, cur*500);
     }
   }
   
@@ -1019,14 +1262,14 @@ void OccupancyGrid::sendHoughMaximaToImage(char* filename){
 //     }
 //   }
   
-  s->performLeastSquares();
-    
-  for (int i=0; i<HoughGrid::GRID_SIZE; i++){
-    for (int j=0; j<HoughGrid::GRID_SIZE; j++) {
-      unsigned short cur = s->lsqrGrid->getValue(i, j);
-      if (cur > 0) setImagePixelHough(w, i, j, 65535);
-    }
-  }
+//   s->performLeastSquares();
+//   
+//   for (int i=0; i<HoughGrid::GRID_SIZE; i++){
+//     for (int j=0; j<HoughGrid::GRID_SIZE; j++) {
+//       unsigned short cur = s->lsqrGrid->getValue(i, j);
+//       if (cur > 0) setImagePixelHough(w, i, j, 65535);
+//     }
+//   }
   
   w->output_image();
   delete w;
