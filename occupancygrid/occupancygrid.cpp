@@ -750,3 +750,16 @@ void OccupancyGrid::mergeMaps(OccupancyGrid* newGrid){
     }
   }
 }
+
+
+
+//copy just the walls of the occupancy grid into newGrid
+void OccupancyGrid::getWallMap(OccupancyGrid* newGrid){
+  for(int i=0; i<Grid::GRID_SIZE; i++){
+    for(int j=0; j<Grid::GRID_SIZE; j++){
+      char cur = this->grid->getValue(i,j);
+      if (cur < 0) newGrid->grid->setValue(i,j,cur);
+    }
+  }
+}
+

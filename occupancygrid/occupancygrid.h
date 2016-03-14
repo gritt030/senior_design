@@ -76,6 +76,8 @@ class OccupancyGrid {
     void openSliceAccording(OccupancyGrid* ref, int relX1, int relY1, int relX2, int relY2, float angle);
     void closeSliceAccording(OccupancyGrid* ref, int relX1, int relY1, int relX2, int relY2, float angle);
 
+    //copy the just the walls of the occupancy map into newGrid
+    void getWallMap(OccupancyGrid* newGrid);
     
     //output map as image
     void sendToImage(char* filename, int x, int y);
@@ -97,6 +99,7 @@ class OccupancyGrid {
     HoughLine* getHoughLines(double radius, double theta);
     void makeHoughLine(double r, double t, int sX, int sY, int eX, int eY, HoughLine* hl);
     int combineHoughLines(HoughLine* lines);
+    int collapseLineList();
     int mergeLineList(HoughLine* lines);
     bool mergeHoughLines(HoughLine* line1, HoughLine* line2);
     void traceHoughWalls(OccupancyGrid* newGrid, HoughLeastSquares* houghLS);
@@ -111,8 +114,8 @@ class OccupancyGrid {
     void sendHoughMaximaToImage(char* filename);
     void setImagePixelHough(PngWriter* w, int x, int y, unsigned short value);
     HoughGrid* performHoughTransform();
-    static const int BRIDGE = 144;//12;   //number of open cells to jump when tracing lines (12)
-    static const int MIN_BRIDGE = 25;//5;    //number of closed cells in a row required to make a wall (5)
+    static const int BRIDGE = 64;//12;   //number of open cells to jump when tracing lines (12)
+    static const int MIN_BRIDGE = 225;//5;    //number of closed cells in a row required to make a wall (5)
     
     //theta used for cardinal directions
     double X_Cardinal=-1.0, Y_Cardinal=-1.0;

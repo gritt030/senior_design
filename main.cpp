@@ -614,10 +614,17 @@ int main(int argc, char **argv) {
 //     a->shiftScans();
 //   }
   
-  a->rotateMap(0.18326);
+  //a->rotateMap(0.18326);
+  a->rotateMap(0.174533);
   
   std::cout << "Generating occupancy grid..." << std::endl;
-  OccupancyGrid* o1 = a->generateMapNoBlur();
+  OccupancyGrid* orig = a->generateMapNoBlur();
+  
+  OccupancyGrid* o1 = new OccupancyGrid();
+  orig->getWallMap(o1);
+  
+  o1->blurMapX(2);
+  o1->blurMapY(2);
   
   std::cout << "Generating hough map..." << std::endl;
   OccupancyGrid* hough = o1->generateHoughMap();
