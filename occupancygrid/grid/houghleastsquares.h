@@ -13,7 +13,7 @@ public:
   static const int LS_ANGLE = 37;
   //theta used for cardinal directions
   double X_Cardinal=-1.0, Y_Cardinal=-1.0;
-  static const int NUM_PEAKS = 10000;   //number of peaks to find
+  static const int NUM_PEAKS = 2000;   //number of peaks to find
 //   static const unsigned short THRESHOLD = 0;
     
   

@@ -43,6 +43,24 @@ HoughGrid* OccupancyGrid::performHoughTransform(){
 
 
 
+double OccupancyGrid::getRotationValue(){
+  //do hough transform
+  HoughGrid* h = this->performHoughTransform();
+  HoughLeastSquares* s = new HoughLeastSquares(h);
+  s->findMaxima();
+  
+  this->X_Cardinal = s->X_Cardinal;
+  this->Y_Cardinal = s->Y_Cardinal;
+  
+  delete h;
+  delete s;
+  
+  return this->Y_Cardinal;
+}
+
+
+
+
 
 
 
@@ -869,6 +887,7 @@ int OccupancyGrid::mergeLineList(HoughLine* lines){
     
     if (add) {
       HoughLine* next = curLine->next;
+      this->mergeHoughLines(curLine, curLine);
       curLine->next = lineList;
       lineList = curLine;
       curLine = next;
@@ -914,13 +933,13 @@ bool OccupancyGrid::mergeHoughLines(HoughLine* line1, HoughLine* line2){
   diffXcard2 = fabs(diffXcard2);
   
   double threshY = 0.05;
-  double threshX = 0.06;
+  double threshX = 0.05;
   double radThresh = 10.0;
   
   if ((diffYcard1 > threshY) && (diffXcard1 > threshX)){
     if ((diffYcard2 > threshY) && (diffXcard2 > threshX)){
       //lines are both too far from a cardinal direction, drop both
-      line1->theta = 15.70796327;
+      line1->theta = 12.56637061;
       line1->radius = 0;
       line1->startX = 0;
       line1->startY = 0;
@@ -942,9 +961,20 @@ bool OccupancyGrid::mergeHoughLines(HoughLine* line1, HoughLine* line2){
     return true;
   }
   
+  ////////return false;
+  
   //lines are both close to a cardinal direction, try to combine
   
+  //vertical lines
   if ((diffYcard1 < threshY) && (diffYcard2 < threshY)){
+    //check if endpoints are close enough to merge
+    int overlap1 = (line1->endY) - (line2->startY);
+    int overlap2 = (line2->endY) - (line1->startY);
+    if ((overlap1 < 0) || (overlap2 < 0)){
+      return false;
+    }
+    
+    //check that radii are close enough to merge
     double rad1 = line1->radius;
     double rad2 = line2->radius;
     
@@ -1030,7 +1060,16 @@ bool OccupancyGrid::mergeHoughLines(HoughLine* line1, HoughLine* line2){
 //       std::cout << line1->endY << ", " << line2->endY << "\n";
     }
     
+  //horizontal lines
   } else if ((diffXcard1 < threshX) && (diffXcard2 < threshX)){
+    //check if endpoints are close enough to merge
+    int overlap1 = (line1->endX) - (line2->startX);
+    int overlap2 = (line2->endX) - (line1->startX);
+    if ((overlap1 < 0) || (overlap2 < 0)){
+      return false;
+    }
+    
+    //check that radii are close enough to merge
     double rad1 = line1->radius;
     double rad2 = line2->radius;
     
@@ -1089,238 +1128,7 @@ bool OccupancyGrid::mergeHoughLines(HoughLine* line1, HoughLine* line2){
   
   //lines cannot be merged
   return false;
-  
-  
-  
-  
-  
-  double thresh = -1.0;
-  if (diffYcard1 < thresh) {
-    if (diffYcard2 < thresh) {
-      return false;
-    } else {
-      return true;
-    }
-  } else {
-    if (diffYcard2 < thresh) {
-      line1->theta = line2->theta;;
-      line1->radius = line2->radius;
-      line1->startX = line2->startX;
-      line1->startY = line2->startY;
-      line1->endX = line2->endX;
-      line1->endY = line2->endY;
-      return true;
-    } else {
-      line1->theta = 0;
-      line1->radius = 0;
-      line1->startX = 0;
-      line1->startY = 0;
-      line1->endX = 0;
-      line1->endY = 0;
-      return true;
-    }
-  }
-  
-  return false;
-  
-  int diff12x = (line1->endX) - (line2->startX);
-  int diff12y = (line1->endY) - (line2->startY);
-  int diff12 = diff12x*diff12x + diff12y*diff12y;
-  
-  int diff21x = (line2->endX) - (line1->startX);
-  int diff21y = (line2->endY) - (line1->startY);
-  int diff21 = diff12x*diff12x + diff12y*diff12y;
-  
-  double thetaDiff = (line1->theta) - (line2->theta);
-  thetaDiff *= thetaDiff;
-  double radiusDiff = (line1->radius) - (line2->radius);
-  radiusDiff *= radiusDiff;
-  
-  int joinThresh = 10;
-  joinThresh *= joinThresh;
-  int newBRIDGE = 5;
-  newBRIDGE *= newBRIDGE;
-  
-  int dx1, dy1, dx2, dy2;
-  double c, s, c1, s1, c2, s2;
-  double diff1, diff2;
-  
-  double det1, det2;
-  double intX, intY;
-  double newTheta, newRadius;
-  int newSX, newEX, newSY, newEY;
-  
-  /*
-  if (diff12 > joinThresh){
-    //check if close endpoints should be merged
-    if (diff12 > newBRIDGE) {
-      //use dot products to see if lines overlap
-      dx1 = (line2->startX) - (line1->endX);
-      dy1 = (line2->startY) - (line1->endY);
-      dx2 = (line1->startX) - (line1->endX);
-      dy2 = (line1->startY) - (line1->endY);
-      
-      if ((dx1*dx2 + dy1*dy2) < 0) {
-        dx1 = (line1->startX) - (line2->endX);
-        dy1 = (line1->startY) - (line2->endY);
-        dx2 = (line2->startX) - (line2->endX);
-        dy2 = (line2->startY) - (line2->endY);
-        
-        if ((dx1*dx2 + dy1*dy2) < 0) {
-          //lines don't overlap, don't merge them
-          std::cout << "No merge: ";
-          std::cout << line1->radius << ", " << line2->radius << ", ";
-          std::cout << line1->theta << ", " << line2->theta << ", ";
-          std::cout << line1->startX << ", " << line2->startX << ", ";
-          std::cout << line1->startY << ", " << line2->startY << ", ";
-          std::cout << line1->endX << ", " << line2->endX << ", ";
-          std::cout << line1->endY << ", " << line2->endY << "\n";
-          return false;
-        }
-      }
-    }
-  } else if (diff21 > joinThresh){
-    //check if close endpoints should be merged
-    if (diff21 > newBRIDGE) {
-      //use dot products to see if lines overlap
-      dx1 = (line2->startX) - (line1->endX);
-      dy1 = (line2->startY) - (line1->endY);
-      dx2 = (line1->startX) - (line1->endX);
-      dy2 = (line1->startY) - (line1->endY);
-      
-      if ((dx1*dx2 + dy1*dy2) < 0) {
-        dx1 = (line1->startX) - (line2->endX);
-        dy1 = (line1->startY) - (line2->endY);
-        dx2 = (line2->startX) - (line2->endX);
-        dy2 = (line2->startY) - (line2->endY);
-        
-        if ((dx1*dx2 + dy1*dy2) < 0) {
-          //lines don't overlap, don't merge them
-          std::cout << "No merge: ";
-          std::cout << line1->radius << ", " << line2->radius << ", ";
-          std::cout << line1->theta << ", " << line2->theta << ", ";
-          std::cout << line1->startX << ", " << line2->startX << ", ";
-          std::cout << line1->startY << ", " << line2->startY << ", ";
-          std::cout << line1->endX << ", " << line2->endX << ", ";
-          std::cout << line1->endY << ", " << line2->endY << "\n";
-          return false;
-        }
-      }
-    }
-  }
-  */
-  
-  
-  if ((diff12 > joinThresh) && (diff21 > joinThresh)) return false;
-  
-  dx1 = (line1->endX) - (line1->startX);
-  dy1 = (line1->endY) - (line1->startY);
-  diff1 = sqrt(dx1*dx1 + dy1*dy1);    //weights
-  
-  dx2 = (line2->endX) - (line2->startX);
-  dy2 = (line2->endY) - (line2->startY);
-  diff2 = sqrt(dx2*dx2 + dy2*dy2);    //weights
-  
-  newTheta = (diff1*(line1->theta) + diff2*(line2->theta))/(diff1+diff2);
-  
-  c = cos(newTheta);        //angles
-  s = sin(newTheta);
-  c1 = cos(line1->theta);     
-  s1 = sin(line1->theta);
-  c2 = cos(line2->theta);
-  s2 = sin(line2->theta);
-  
-  det1 = c*s1 - s*c1;       //determinants
-  det2 = c*s2 - s*c2;
-  
-  if (det1 == 0.0) {
-    
-  }
-  
-  double det = -1.0;
-    
-    if (det == 0.0) {
-      newTheta = line1->theta;
-      newRadius = ((line1->radius) + (line2->radius))/2.0;
-    } else {
-      newTheta = ((diff1*line1->theta) + (diff2*line2->theta))/(diff1 + diff2);
-//       newTheta = ((diff1*line1->radius) + (diff2*line2->radius))/(diff1 + diff2);
-      
-      intX = ((s2*line1->radius) - (s1*line2->radius))/det;
-      intY = ((c1*line2->radius) - (c2*line1->radius))/det;
-      newRadius = intX*cos(newTheta) + intY*sin(newTheta);
-    }
-    
-    double interTheta = newTheta + 1.570796327;
-    double startRad1 = (line1->startX)*cos(interTheta) + (line1->startY)*sin(interTheta);
-    double startRad2 = (line2->startX)*cos(interTheta) + (line2->startY)*sin(interTheta);
-    double endRad1 = (line1->endX)*cos(interTheta) + (line1->endY)*sin(interTheta);
-    double endRad2 = (line2->endX)*cos(interTheta) + (line2->endY)*sin(interTheta);
-    
-    double interDet = cos(newTheta)*sin(interTheta) - sin(newTheta)*cos(interTheta);
-    
-    double interSX1 = (newRadius*sin(interTheta) - startRad1*sin(newTheta))/interDet;
-    double interSX2 = (newRadius*sin(interTheta) - startRad2*sin(newTheta))/interDet;
-    double interEX1 = (newRadius*sin(interTheta) - endRad1*sin(newTheta))/interDet;
-    double interEX2 = (newRadius*sin(interTheta) - endRad2*sin(newTheta))/interDet;
-    
-    double interSY1 = (startRad1*cos(newTheta) - newRadius*cos(interTheta))/interDet;
-    double interSY2 = (startRad2*cos(newTheta) - newRadius*cos(interTheta))/interDet;
-    double interEY1 = (endRad1*cos(newTheta) - newRadius*cos(interTheta))/interDet;
-    double interEY2 = (endRad2*cos(newTheta) - newRadius*cos(interTheta))/interDet;
-    
-    //1,1
-    double len1 = (interSX1 - interEX1)*(interSX1 - interEX1) + (interSY1 - interEY1)*(interSY1 - interEY1);
-    //1,2
-    double len2 = (interSX1 - interEX2)*(interSX1 - interEX2) + (interSY1 - interEY2)*(interSY1 - interEY2);
-    //2,1
-    double len3 = (interSX2 - interEX1)*(interSX2 - interEX1) + (interSY2 - interEY1)*(interSY2 - interEY1);
-    //2,2
-    double len4 = (interSX2 - interEX2)*(interSX2 - interEX2) + (interSY2 - interEY2)*(interSY2 - interEY2);
-    
-    if ((len1 > len2) && (len1 > len3) && (len1 > len4)){
-      newSX = (int)round(interSX1);
-      newSY = (int)round(interSY1);
-      newEX = (int)round(interEX1);
-      newEY = (int)round(interEY1);
-    } else if ((len2 > len3) && (len2 > len4)){
-      newSX = (int)round(interSX1);
-      newSY = (int)round(interSY1);
-      newEX = (int)round(interEX2);
-      newEY = (int)round(interEY2);
-    } else if (len3 > len4){
-      newSX = (int)round(interSX2);
-      newSY = (int)round(interSY2);
-      newEX = (int)round(interEX1);
-      newEY = (int)round(interEY1);
-    } else {
-      newSX = (int)round(interSX2);
-      newSY = (int)round(interSY2);
-      newEX = (int)round(interEX2);
-      newEY = (int)round(interEY2);
-    }
-    
-    //std::cout << (line1->radius) << ", " << (line2->radius) << ", " << (line1->theta) << ", " << (line2->theta) << std::endl;
-    
-    line1->theta = ((line1->theta) + (line2->theta))/2.0;
-    line1->radius = ((line1->radius) + (line2->radius))/2.0;
-    
-    line1->theta = (diff1*(line1->theta) + diff2*(line2->theta))/(diff1+diff2);
-    line1->radius = (diff1*(line1->radius) + diff2*(line2->radius))/(diff1+diff2);
-    
-    newSX = ((line1->startX) + (line2->startX))/2;
-    newSY = ((line1->startY) + (line2->startY))/2;
-    newEX = ((line1->endX) + (line2->endX))/2;
-    newEY = ((line1->endY) + (line2->endY))/2;
-
-//     line1->theta = newTheta;
-//     line1->radius = newRadius;
-    line1->startX = newSX;
-    line1->startY = newSY;
-    line1->endX = newEX;
-    line1->endY = newEY;
-    return true;
-  }
+}
 
 
 

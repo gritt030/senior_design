@@ -17,6 +17,7 @@
 #include "sonar/sonararchive.h"
 #include "navigation/navigationmap/navigationmap.h"
 #include "occupancygrid/grid/houghgrid.h"
+#include "linefitter/lsdlinefitter.h"
 
 #include "pngwriter/png_writer.h"
 
@@ -529,7 +530,7 @@ int main(int argc, char **argv) {
   
   /////Normal main loop /////
   //for (int i=0; i<100; i++) r->updateCoordsFile();
-  for (int i=0; i<3000; i++){
+  for (int i=0; i<1000; i++){
     //std::cout << "---- " << i << " ----" << std::endl;
     l->triggerUpdate();
     
@@ -615,21 +616,47 @@ int main(int argc, char **argv) {
 //   }
   
   //a->rotateMap(0.18326);
-  a->rotateMap(0.174533);
+  //a->rotateMap(0.174533);
+  //a->rotateMap(0.218166);
   
   std::cout << "Generating occupancy grid..." << std::endl;
   OccupancyGrid* orig = a->generateMapNoBlur();
   
+  a->rotateMap(orig->getRotationValue());
+  delete orig;
+  
+  orig = a->generateMapNoBlur();
+  
   OccupancyGrid* o1 = new OccupancyGrid();
   orig->getWallMap(o1);
   
-  o1->blurMapX(2);
-  o1->blurMapY(2);
+  o1->blurMapX(4);
+  o1->blurMapY(4);
+  
+  o1->sendToImage(sorImg, 0,0);
+  
+  OccupancyGrid* o2 = new OccupancyGrid();
+  orig->getOpenMap(o2);
+  std::cout << "Begin LSD...\n";
+  LsdLineFitter* lsd = new LsdLineFitter();
+  lsd->detectLineSegmentsX(o1, o2);
+  lsd->detectLineSegmentsY(o1, o2);
+  std::cout << "End LSD\n";
+  o2->sendToImage(navImg, 0,0);
+  
+  return 0;///////
   
   std::cout << "Generating hough map..." << std::endl;
   OccupancyGrid* hough = o1->generateHoughMap();
   
   std::cout << hough->Y_Cardinal << std::endl;
+  
+  delete orig;
+  delete o1;
+  o1 = new OccupancyGrid();
+  orig = a->generateMapNoBlur();
+  orig->getOpenMap(o1);
+  o1->overlayMaps(hough);
 
 //   a->rotateMap(hough->Y_Cardinal);
 //   delete o1;
@@ -637,8 +664,8 @@ int main(int argc, char **argv) {
 //   o1 = a->generateMapNoBlur();
 //   hough = o1->generateHoughMap();
   
-  a->addPath(o1);
-  a->addPath(hough);
+//   a->addPath(o1);
+//   a->addPath(hough);
   
   //OccupancyGrid* o1 = a->generateMapReference();
   
@@ -664,10 +691,11 @@ int main(int argc, char **argv) {
   std::cout << "Image" << std::endl;
   //o1->cleanFrontier();
   
-  a->generateMapNoBlur()->sendHoughToImage(rawImg);
+  //a->generateMapNoBlur()->sendHoughToImage(rawImg);
+  a->generateMapNoBlur()->sendToImage(rawImg, 0,0);
   o1->sendToImage(occImg, 0,0);
   hough->sendToImage(navImg, 0,0);
-  a->generateMapNoBlur()->sendHoughMaximaToImage(sorImg);
+  //a->generateMapNoBlur()->sendHoughMaximaToImage(sorImg);
   
   //a->generateMapNoBlur()->generateHoughMap()->generateHoughMap()->sendToImage(sorImg, 0,0);
   //o2->sendToImage(sorImg);

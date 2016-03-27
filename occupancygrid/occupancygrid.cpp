@@ -753,12 +753,36 @@ void OccupancyGrid::mergeMaps(OccupancyGrid* newGrid){
 
 
 
+//overlay the given grid onto this one
+void OccupancyGrid::overlayMaps(OccupancyGrid* newGrid){
+  for(int i=0; i<Grid::GRID_SIZE; i++){
+    for(int j=0; j<Grid::GRID_SIZE; j++){
+      char cur = newGrid->grid->getValue(i,j);
+      if (cur != 0) this->grid->setValue(i,j,cur);
+    }
+  }
+}
+
+
+
 //copy just the walls of the occupancy grid into newGrid
 void OccupancyGrid::getWallMap(OccupancyGrid* newGrid){
   for(int i=0; i<Grid::GRID_SIZE; i++){
     for(int j=0; j<Grid::GRID_SIZE; j++){
       char cur = this->grid->getValue(i,j);
       if (cur < 0) newGrid->grid->setValue(i,j,cur);
+    }
+  }
+}
+
+
+
+//copy just the open areas of the occupancy grid into newGrid
+void OccupancyGrid::getOpenMap(OccupancyGrid* newGrid){
+  for(int i=0; i<Grid::GRID_SIZE; i++){
+    for(int j=0; j<Grid::GRID_SIZE; j++){
+      char cur = this->grid->getValue(i,j);
+      if (cur > 0) newGrid->grid->setValue(i,j,cur);
     }
   }
 }

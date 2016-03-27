@@ -69,6 +69,7 @@ class OccupancyGrid {
     
     //combine two occupancy maps
     void mergeMaps(OccupancyGrid* newGrid);
+    void overlayMaps(OccupancyGrid* newGrid);
     
     //draw lines in map based on lines in ref map
     bool openLineAccording(OccupancyGrid* ref, int relX1, int relY1, int relX2, int relY2);
@@ -76,8 +77,10 @@ class OccupancyGrid {
     void openSliceAccording(OccupancyGrid* ref, int relX1, int relY1, int relX2, int relY2, float angle);
     void closeSliceAccording(OccupancyGrid* ref, int relX1, int relY1, int relX2, int relY2, float angle);
 
-    //copy the just the walls of the occupancy map into newGrid
+    //copy just the walls of the occupancy map into newGrid
     void getWallMap(OccupancyGrid* newGrid);
+    //copy just the open areas of the occupancy map into newGrid
+    void getOpenMap(OccupancyGrid* newGrid);
     
     //output map as image
     void sendToImage(char* filename, int x, int y);
@@ -85,6 +88,20 @@ class OccupancyGrid {
     void sendToImageSmall(char* filename);
     
     void cleanFrontier();
+    
+    
+    
+    
+    
+    
+    
+    
+    //LSD line detection stuff
+    OccupancyGrid* fitLinesLSD();
+    
+    
+    
+    
     
     
     
@@ -114,8 +131,9 @@ class OccupancyGrid {
     void sendHoughMaximaToImage(char* filename);
     void setImagePixelHough(PngWriter* w, int x, int y, unsigned short value);
     HoughGrid* performHoughTransform();
-    static const int BRIDGE = 64;//12;   //number of open cells to jump when tracing lines (12)
-    static const int MIN_BRIDGE = 225;//5;    //number of closed cells in a row required to make a wall (5)
+    double getRotationValue();
+    static const int BRIDGE = 36;//12;   //number of open cells to jump when tracing lines (12)
+    static const int MIN_BRIDGE = 81;//5;    //number of closed cells in a row required to make a wall (5)
     
     //theta used for cardinal directions
     double X_Cardinal=-1.0, Y_Cardinal=-1.0;
